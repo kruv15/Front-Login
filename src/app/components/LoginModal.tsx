@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FaUserGraduate, FaChalkboardTeacher, FaShieldAlt } from 'react-icons/fa'
 
 const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   const [role, setRole] = useState<string>('estudiante')
+
+  // Bloquea el scroll cuando el modal se monta
+  useEffect(() => {
+    document.body.classList.add('overflow-hidden')
+    return () => {
+      document.body.classList.remove('overflow-hidden')
+    }
+  }, [])
 
   const getRoleColors = (role: string) => {
     switch (role) {
