@@ -1,20 +1,21 @@
-import type React from "react"
-import type { Metadata } from "next"
-import "./global.css"
+// src/app/layout.tsx
+import './globals.css'
+import Header from './components/Header'
+import Footer from './components/Footer'
 
-export const metadata: Metadata = {
-  title: "Next.js Frontend Project",
-  description: "A Next.js 15 frontend project with TypeScript and TailwindCSS",
+export const metadata = {
+  title: 'Campus Virtual UMSS',
+  description: 'Plataforma educativa oficial de la Universidad Mayor de San Simón',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className="font-sans">
+        <Header />
+        {children}
+        <Footer />
+      </body>
     </html>
   )
 }
