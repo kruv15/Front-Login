@@ -1,8 +1,16 @@
+'use client'
+
+import { useState } from 'react'
 import { FaUserGraduate, FaChalkboardTeacher, FaUsers } from 'react-icons/fa'
+import LoginModal from './components/LoginModal' // Ajusta la ruta si es diferente
 
 export default function Home() {
+  const [showModal, setShowModal] = useState(false)
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-[#f9f9f9] to-[#e6e6e6] overflow-x-hidden">
+      {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
+
       {/* Hero */}
       <section className="text-center py-20 bg-gradient-to-r from-[#C8102E] to-[#002855] text-white">
         <h1 className="text-4xl font-bold mb-4">
@@ -12,7 +20,10 @@ export default function Home() {
           Accede a tus materias, recursos y actividades académicas desde un solo lugar. Diseñado
           para mejorar tu experiencia educativa.
         </p>
-        <button className="bg-white text-[#C8102E] px-6 py-3 font-semibold rounded-md hover:bg-gray-100 transition">
+        <button
+          className="bg-white text-[#C8102E] px-6 py-3 font-semibold rounded-md hover:bg-gray-100 transition"
+          onClick={() => setShowModal(true)}
+        >
           Ir al Campus →
         </button>
       </section>
