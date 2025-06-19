@@ -2,9 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { FaUserGraduate, FaChalkboardTeacher, FaShieldAlt } from 'react-icons/fa'
+import { useRouter } from 'next/navigation' // Para la redirección
+import { useUserContext } from '../contexts/UserContext' // Importamos el contexto de usuario
 
 const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   const [role, setRole] = useState<string>('estudiante')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [error, setError] = useState<string | null>(null)
+  const { setUser } = useUserContext() // Accedemos al contexto para actualizar el estado
+  const router = useRouter()
 
   // Bloquea el scroll cuando el modal se monta
   useEffect(() => {
@@ -14,6 +21,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     }
   }, [])
 
+  // Colores de los roles
   const getRoleColors = (role: string) => {
     switch (role) {
       case 'estudiante':
@@ -28,6 +36,52 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   }
 
   const [colorStart, colorEnd] = getRoleColors(role)
+
+  // Validación de los campos
+  const validateFields = () => {
+    if (!email || !password) {
+      setError('Todos los campos son obligatorios')
+      return false
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Por favor ingrese un correo electrónico válido')
+      return false
+    }
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres')
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  // Redirección según el rol
+  const handleLogin = () => {
+    if (!validateFields()) return
+
+    // Simulación de datos del usuario después de la validación
+    const userData = {
+      username: email.split('@')[0], // Asignar el username con el correo (solo la parte antes de "@")
+      email: email,
+      role: role,
+    }
+
+    // Actualizamos el contexto con los datos del usuario
+    setUser(userData)
+
+    // Guardamos en sessionStorage
+    sessionStorage.setItem('user', JSON.stringify(userData))
+
+    // Redirigir según el rol
+    if (role === 'estudiante') {
+      router.push('/estudiante')
+    } else if (role === 'docente') {
+      router.push('/docente')
+    } else if (role === 'administrador') {
+      router.push('/administrador')
+    }
+    closeModal() // Cierra el modal después de la redirección
+  }
 
   return (
     <div className="modal-container" onClick={closeModal}>
@@ -72,26 +126,64 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         {/* Formulario según el rol */}
         {role === 'estudiante' && (
           <>
-            <input type="text" placeholder="Código SIS" className="input-field" />
-            <input type="password" placeholder="Contraseña" className="input-field" />
+            <input
+              type="text"
+              placeholder="Código SIS"
+              className="input-field"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="input-field"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
           </>
         )}
         {role === 'docente' && (
           <>
-            <input type="email" placeholder="Correo institucional" className="input-field" />
-            <input type="password" placeholder="Contraseña" className="input-field" />
+            <input
+              type="email"
+              placeholder="Correo institucional"
+              className="input-field"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="input-field"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
           </>
         )}
         {role === 'administrador' && (
           <>
-            <input type="text" placeholder="Usuario" className="input-field" />
-            <input type="password" placeholder="Contraseña" className="input-field" />
+            <input
+              type="text"
+              placeholder="Usuario"
+              className="input-field"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="input-field"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
           </>
         )}
 
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         {/* Botones de acción */}
         <div className="mt-6 flex gap-4">
-          <button className="bg-white text-black px-4 py-2 rounded-md w-full">
+          <button onClick={handleLogin} className="bg-white text-black px-4 py-2 rounded-md w-full">
             Iniciar sesión
           </button>
           <button
