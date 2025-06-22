@@ -1,30 +1,26 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import LoginModal from './LoginModal'
-import { useUserContext } from '../contexts/UserContext'
-import { FaUserCircle } from 'react-icons/fa'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import Link from "next/link"
+import LoginModal from "./LoginModal"
+import { useUserContext } from "../contexts/UserContext"
+import { FaUserCircle } from "react-icons/fa"
+import { useRouter } from "next/navigation"
 
 export default function Header() {
-  const { user, setUser } = useUserContext()
+  const { user, isLoading, logout, checkAndRedirectIfAuthenticated } = useUserContext()
   const [isModalVisible, setModalVisible] = useState(false)
   const router = useRouter()
 
-  const toggleModal = () => setModalVisible(!isModalVisible)
-
-  const handleLogout = () => {
-    setUser(null)
-    sessionStorage.removeItem('user')
-    router.push('/')
+  const toggleModal = () => {
+    // Verificar si ya hay una sesión activa
+    checkAndRedirectIfAuthenticated()
+    setModalVisible(!isModalVisible)
   }
 
-  useEffect(() => {
-    if (user) {
-      setUser(user)
-    }
-  }, [user, setUser])
+  const handleLogout = async () => {
+    await logout()
+  }
 
   return (
     <>
@@ -42,7 +38,12 @@ export default function Header() {
             Sobre la plataforma
           </Link>
 
-          {user ? (
+          {isLoading ? (
+            <div className="flex items-center gap-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#002855]"></div>
+              <span className="text-[#002855] text-sm">Verificando sesión...</span>
+            </div>
+          ) : user ? (
             <div className="flex items-center gap-4">
               <FaUserCircle className="text-[#002855]" size={30} />
               <span className="text-[#002855] text-sm capitalize">{user.role}</span>
