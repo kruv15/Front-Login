@@ -1,53 +1,89 @@
-'use client'
+"use client"
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import type React from "react"
 
-// Define el tipo de datos del usuario
-interface User {
-  username: string
-  email: string
-  role: string
+import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
+import { authService, type User } from "../services/authService"
+
+interface UserContextType {
+  user: User | null
+  setUser: React.Dispatch<React.SetStateAction<User | null>>
+  isLoading: boolean
+  logout: () => Promise<void>
+  checkAndRedirectIfAuthenticated: () => void
 }
 
-const UserContext = createContext<
-  | {
-      user: User | null
-      setUser: React.Dispatch<React.SetStateAction<User | null>>
-    }
-  | undefined
->(undefined)
+const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
-  // Estado del usuario
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Accede a sessionStorage solo en el cliente
+  // Verificar sesión existente al cargar la aplicación
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user')
-    // Solo establecer usuario si está presente en sessionStorage
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    const checkExistingSession = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const currentUser = await authService.getCurrentUser()
+          if (currentUser) {
+            setUser(currentUser)
+            // Si hay una sesión válida, redirigir automáticamente
+            const role = authService.getStoredRole()
+            if (role) {
+              authService.redirectToRoleFrontend(role)
+              return
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error al verificar sesión existente:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, []) // Solo se ejecuta una vez, después del montaje en el cliente
 
-  // Guardar el usuario en sessionStorage cuando se actualiza el estado
-  useEffect(() => {
-    if (user) {
-      // Cuando el usuario cambia, lo guardamos en sessionStorage
-      sessionStorage.setItem('user', JSON.stringify(user))
-    } else {
-      // Si no hay usuario, eliminamos del sessionStorage
-      sessionStorage.removeItem('user')
+    checkExistingSession()
+  }, [])
+
+  const logout = async () => {
+    try {
+      await authService.logout()
+      setUser(null)
+      // Recargar la página para limpiar cualquier estado residual
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Error durante logout:", error)
     }
-  }, [user])
+  }
 
-  return <UserContext.Provider value={{ user, setUser }}>{children}</UserContext.Provider>
+  const checkAndRedirectIfAuthenticated = () => {
+    if (authService.isAuthenticated()) {
+      const role = authService.getStoredRole()
+      if (role) {
+        authService.redirectToRoleFrontend(role)
+      }
+    }
+  }
+
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+        isLoading,
+        logout,
+        checkAndRedirectIfAuthenticated,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  )
 }
 
 export const useUserContext = () => {
   const context = useContext(UserContext)
   if (!context) {
-    throw new Error('useUserContext must be used within a UserContextProvider')
+    throw new Error("useUserContext must be used within a UserContextProvider")
   }
   return context
 }
