@@ -1,14 +1,16 @@
 @import 'tailwindcss';
 
+/* === Variables de color UMSS === */
 :root {
   --background: #ffffff;
   --foreground: #171717;
   --primary-color: #002855; /* Azul UMSS */
   --secondary-color: #9b1c2f; /* Rojo UMSS */
-  --tertiary-color: #b0b0b0; /* Gris Claro UMSS */
-  --button-hover-color: #d3d3d3; /* Gris suave para hover */
+  --tertiary-color: #b0b0b0; /* Gris Claro */
+  --button-hover-color: #d3d3d3; /* Gris suave */
 }
 
+/* === Modo oscuro (opcional) === */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -22,7 +24,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Fondo general del modal con efecto blur */
+/* === MODAL: Fondo borroso === */
 .modal-container {
   position: fixed;
   top: 0;
@@ -38,7 +40,7 @@ body {
   z-index: 50;
 }
 
-/* Estilo base del modal */
+/* === MODAL: Contenido base === */
 .modal-content {
   background-color: white;
   padding: 40px;
@@ -48,7 +50,7 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Degradados según el rol */
+/* === MODAL: Degradados por rol === */
 .modal-content.estudiante {
   background: linear-gradient(to right, #9b1c2f, #002855);
 }
@@ -59,7 +61,7 @@ body {
   background: linear-gradient(to right, #b0b0b0, #9b1c2f);
 }
 
-/* === Estilo de botones de rol === */
+/* === Botones de rol (dentro del modal) === */
 .role-button {
   width: 32%;
   padding: 12px;
@@ -91,7 +93,6 @@ body {
   border-color: white;
 }
 
-/* Iconos */
 .role-button svg {
   margin-bottom: 8px;
   width: 24px;
@@ -103,7 +104,7 @@ body {
   color: var(--secondary-color);
 }
 
-/* Inputs */
+/* === INPUT: para login modal (fondo transparente) === */
 .input-field {
   width: 100%;
   padding: 12px;
@@ -119,19 +120,41 @@ body {
   color: #f2f2f2;
 }
 
-/* Botones normales */
+/* === INPUT: para formularios normales (ej. registro) === */
+.input-plain {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+  color: var(--primary-color);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-plain:focus {
+  border-color: var(--secondary-color);
+}
+
+.input-plain::placeholder {
+  color: #888;
+}
+
+/* === Botones genéricos === */
 button {
   padding: 12px;
   margin: 5px 0;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 button:hover {
   background-color: var(--button-hover-color);
 }
 
-/* Enlace inferior personalizado como botón */
+/* === Enlace de recuperar contraseña (modal login) === */
 a.forgot-password {
   display: inline-block;
   margin-top: 12px;
