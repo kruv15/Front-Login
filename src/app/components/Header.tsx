@@ -5,12 +5,10 @@ import Link from "next/link"
 import LoginModal from "./LoginModal"
 import { useUserContext } from "../contexts/UserContext"
 import { FaUserCircle } from "react-icons/fa"
-import { useRouter } from "next/navigation"
 
 export default function Header() {
   const { user, isLoading, logout, checkAndRedirectIfAuthenticated } = useUserContext()
   const [isModalVisible, setModalVisible] = useState(false)
-  const router = useRouter()
 
   const toggleModal = () => {
     // Verificar si ya hay una sesión activa
