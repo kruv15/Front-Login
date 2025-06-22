@@ -3,27 +3,25 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import LoginModal from './LoginModal'
-import { useUserContext } from '../contexts/UserContext' // Importamos el contexto de usuario
+import { useUserContext } from '../contexts/UserContext'
 import { FaUserCircle } from 'react-icons/fa'
 import { useRouter } from 'next/navigation'
 
 export default function Header() {
-  const { user, setUser } = useUserContext() // Accedemos al contexto de usuario
+  const { user, setUser } = useUserContext()
   const [isModalVisible, setModalVisible] = useState(false)
-  const router = useRouter() // Usamos el router para redirigir al login si cierra sesión
+  const router = useRouter()
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
   const handleLogout = () => {
-    setUser(null) // Limpiamos el contexto del usuario
-    sessionStorage.removeItem('user') // Limpiamos el sessionStorage
-    router.push('/') // Redirigimos al login
+    setUser(null)
+    sessionStorage.removeItem('user')
+    router.push('/')
   }
 
-  // Actualizar el nombre de usuario y rol del contexto cuando se loguea
   useEffect(() => {
     if (user) {
-      // Se actualiza si hay cambios en el contexto
       setUser(user)
     }
   }, [user, setUser])
@@ -35,6 +33,7 @@ export default function Header() {
           <img src="/logo-umss.png" alt="Logo UMSS" className="w-10 h-10" />
           <div className="text-xl font-semibold text-[#002855]">Campus Virtual UMSS</div>
         </div>
+
         <nav className="flex gap-6 items-center">
           <Link href="/" className="text-[#002855] hover:underline">
             Inicio
@@ -43,30 +42,33 @@ export default function Header() {
             Sobre la plataforma
           </Link>
 
-          {/* Verifica si el usuario está autenticado */}
           {user ? (
             <div className="flex items-center gap-4">
               <FaUserCircle className="text-[#002855]" size={30} />
-              <span className="text-[#002855]">{user.username}</span>
-              {/* Muestra el rol del usuario */}
-              <span className="text-[#002855] text-sm">{user.role}</span>
-              {/* Botón de cerrar sesión */}
+              <span className="text-[#002855] text-sm capitalize">{user.role}</span>
               <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-md">
                 Cerrar sesión
               </button>
             </div>
           ) : (
-            <button
-              className="bg-[#002855] text-white px-4 py-2 rounded-md hover:bg-[#001f40] transition"
-              onClick={toggleModal}
-            >
-              Iniciar sesión
-            </button>
+            <div className="flex gap-4">
+              <button
+                className="bg-[#002855] text-white px-4 py-2 rounded-md hover:bg-[#001f40] transition"
+                onClick={toggleModal}
+              >
+                Iniciar sesión
+              </button>
+              <Link
+                href="/registro"
+                className="border border-[#002855] text-[#002855] px-4 py-2 rounded-md hover:bg-[#002855] hover:text-white transition"
+              >
+                Registrarse
+              </Link>
+            </div>
           )}
         </nav>
       </header>
 
-      {/* Aquí agregamos la visibilidad del modal */}
       {isModalVisible && <LoginModal closeModal={toggleModal} />}
     </>
   )
