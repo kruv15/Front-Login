@@ -6,12 +6,39 @@ import LoginModal from "./components/LoginModal" // Ajusta la ruta si es diferen
 import { useUserContext } from "./contexts/UserContext"
 
 export default function Home() {
+  console.log("🏠 Home - COMPONENTE INICIANDO")
+
   const [showModal, setShowModal] = useState(false)
   const { checkAndRedirectIfAuthenticated } = useUserContext()
 
+  console.log("📊 Home - Estado inicial:", { showModal })
+
+  const handleShowModal = () => {
+    console.log("🎭 Home - handleShowModal INICIANDO")
+    console.log("🔍 Home - Verificando autenticación antes de mostrar modal...")
+
+    checkAndRedirectIfAuthenticated()
+
+    console.log("🔄 Home - Cambiando estado del modal a true")
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    console.log("🚪 Home - handleCloseModal INICIANDO")
+    console.log("🔄 Home - Cambiando estado del modal a false")
+    setShowModal(false)
+  }
+
+  console.log("🏠 Home - RENDERIZANDO con estado:", { showModal })
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-[#f9f9f9] to-[#e6e6e6] overflow-x-hidden">
-      {showModal && <LoginModal closeModal={() => setShowModal(false)} />}
+      {showModal && (
+        <>
+          {console.log("🎭 Home - Renderizando LoginModal")}
+          <LoginModal closeModal={handleCloseModal} />
+        </>
+      )}
 
       {/* Hero */}
       <section className="text-center py-20 bg-gradient-to-r from-[#C8102E] to-[#002855] text-white">
@@ -23,8 +50,8 @@ export default function Home() {
         <button
           className="bg-white text-[#C8102E] px-6 py-3 font-semibold rounded-md hover:bg-gray-100 transition"
           onClick={() => {
-            checkAndRedirectIfAuthenticated()
-            setShowModal(true)
+            console.log("🚀 Home - Click en botón 'Ir al Campus'")
+            handleShowModal()
           }}
         >
           Ir al Campus →
