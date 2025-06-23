@@ -19,10 +19,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  debugger;
   useEffect(() => {
     console.log("🔄 UserContextProvider - useEffect INICIANDO")
-    debugger;
     // ⏱️ 1. Limpiar sincronamente antes de cualquier async
     const url = new URL(window.location.href)
     const justLoggedOut = url.searchParams.get("logged_out")
@@ -43,40 +41,43 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
 
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
-      debugger;
     }
-    debugger;
     // ✅ 2. Luego verificar sesión
     const checkExistingSession = async () => {
+      console.log("🔍 Verificando si existe un token en localStorage…");
+
+      // 1️⃣ Early-return: si no hay access_token, no seguimos haciendo llamadas
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        console.log("❌ No hay access_token - terminamos verificación.");
+        setIsLoading(false);
+        return;               // ← importante: salimos de la función
+      }
+
+      // 2️⃣ Con token presente, sigue tu lógica habitual
       try {
         const isAuth = authService.isAuthenticated()
         console.log("🔐 isAuthenticated resultado:", isAuth)
-        debugger;
 
         if (isAuth) {
           const currentUser = await authService.getCurrentUser()
           console.log("👤 Usuario obtenido:", currentUser)
-          debugger;
           if (currentUser) {
             setUser(currentUser)
             const role = authService.getStoredRole()
-            debugger;
             if (role) {
               authService.redirectToRoleFrontend(role)
-              debugger;
               return
             }
           }
         } else {
           console.log("❌ Usuario no autenticado")
-          debugger;
         }
       } catch (error) {
         console.error("💥 Error al verificar sesión:", error)
-        debugger;
+        localStorage.clear();
       } finally {
         setIsLoading(false)
-        debugger;
       }
     }
 

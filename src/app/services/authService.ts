@@ -281,8 +281,11 @@ class AuthService {
       localStorage.removeItem("refresh_token")
       localStorage.removeItem("user_data")
       localStorage.removeItem("user_role")
+      localStorage.removeItem("auth_source")
+      localStorage.removeItem("auth_timestamp")
       sessionStorage.clear()
       console.log("✅ AuthService.logout - localStorage limpiado")
+      window.location.href = "/"
     }
   }
 
