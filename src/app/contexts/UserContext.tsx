@@ -16,26 +16,6 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
-  useEffect(() => {
-    // Si viene de un logout externo, limpiar localStorage manualmente
-    const url = new URL(window.location.href)
-    const justLoggedOut = url.searchParams.get("logged_out")
-
-    if (justLoggedOut === "true") {
-      console.log("🔄 Login: Detectado return de logout externo, limpiando localStorage...")
-
-      localStorage.removeItem("access_token")
-      localStorage.removeItem("refresh_token")
-      localStorage.removeItem("user_data")
-      localStorage.removeItem("user_role")
-      localStorage.removeItem("auth_source")
-      localStorage.removeItem("auth_timestamp")
-
-      // Limpiar la URL
-      url.searchParams.delete("logged_out")
-      window.history.replaceState({}, document.title, url.pathname + url.search)
-    }
-  }, [])
 
   console.log("🏗️ UserContextProvider - INICIANDO PROVIDER")
 
@@ -95,6 +75,27 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     console.log("🚪 UserContextProvider - logout INICIANDO")
+
+    useEffect(() => {
+      // Si viene de un logout externo, limpiar localStorage manualmente
+      const url = new URL(window.location.href)
+      const justLoggedOut = url.searchParams.get("logged_out")
+
+      if (justLoggedOut === "true") {
+        console.log("🔄 Login: Detectado return de logout externo, limpiando localStorage...")
+
+        localStorage.removeItem("access_token")
+        localStorage.removeItem("refresh_token")
+        localStorage.removeItem("user_data")
+        localStorage.removeItem("user_role")
+        localStorage.removeItem("auth_source")
+        localStorage.removeItem("auth_timestamp")
+
+        // Limpiar la URL
+        url.searchParams.delete("logged_out")
+        window.history.replaceState({}, document.title, url.pathname + url.search)
+      }
+    }, [])
 
     try {
       console.log("📡 UserContextProvider - Llamando authService.logout()...")
