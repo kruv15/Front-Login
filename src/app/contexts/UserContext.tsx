@@ -23,22 +23,30 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   console.log("📊 UserContextProvider - Estado inicial:", { user, isLoading })
+
+  // 🔄 Detectar si viene de un logout externo y limpiar localStorage
   useEffect(() => {
-    // Si viene de un logout externo, limpiar localStorage manualmente
     const url = new URL(window.location.href)
     const justLoggedOut = url.searchParams.get("logged_out")
 
     if (justLoggedOut === "true") {
       console.log("🔄 Login: Detectado return de logout externo, limpiando localStorage...")
 
-      localStorage.removeItem("access_token")
-      localStorage.removeItem("refresh_token")
-      localStorage.removeItem("user_data")
-      localStorage.removeItem("user_role")
-      localStorage.removeItem("auth_source")
-      localStorage.removeItem("auth_timestamp")
+      const keys = [
+        "access_token",
+        "refresh_token",
+        "user_data",
+        "user_role",
+        "auth_source",
+        "auth_timestamp",
+      ]
 
-      // Limpiar la URL
+      keys.forEach((key) => localStorage.removeItem(key))
+
+      // 🔍 También podrías limpiar sessionStorage si usás:
+      sessionStorage.clear()
+
+      // ✅ Limpiar la URL
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
     }
