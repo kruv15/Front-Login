@@ -23,35 +23,31 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log("🔄 UserContextProvider - useEffect INICIANDO")
 
-    const handleLogoutRedirectCleanup = () => {
-      const url = new URL(window.location.href)
-      const justLoggedOut = url.searchParams.get("logged_out")
+    // ⏱️ 1. Limpiar sincronamente antes de cualquier async
+    const url = new URL(window.location.href)
+    const justLoggedOut = url.searchParams.get("logged_out")
 
-      if (justLoggedOut === "true") {
-        console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
+    if (justLoggedOut === "true") {
+      console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
 
-        const keys = [
-          "access_token",
-          "refresh_token",
-          "user_data",
-          "user_role",
-          "auth_source",
-          "auth_timestamp",
-        ]
+      const keys = [
+        "access_token",
+        "refresh_token",
+        "user_data",
+        "user_role",
+        "auth_source",
+        "auth_timestamp",
+      ]
+      keys.forEach((key) => localStorage.removeItem(key))
+      sessionStorage.clear()
 
-        keys.forEach((key) => localStorage.removeItem(key))
-        sessionStorage.clear()
-
-        // Limpiar la URL
-        url.searchParams.delete("logged_out")
-        window.history.replaceState({}, document.title, url.pathname + url.search)
-      }
+      url.searchParams.delete("logged_out")
+      window.history.replaceState({}, document.title, url.pathname + url.search)
     }
 
+    // ✅ 2. Luego verificar sesión
     const checkExistingSession = async () => {
       try {
-        handleLogoutRedirectCleanup()
-
         const isAuth = authService.isAuthenticated()
         console.log("🔐 isAuthenticated resultado:", isAuth)
 
