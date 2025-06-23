@@ -26,6 +26,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
 
   // 🔄 Detectar si viene de un logout externo y limpiar localStorage
   useEffect(() => {
+    // 🔄 Si viene del logout externo, limpiar tokens ANTES de verificar sesión
     const url = new URL(window.location.href)
     const justLoggedOut = url.searchParams.get("logged_out")
 
@@ -42,14 +43,45 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
       ]
 
       keys.forEach((key) => localStorage.removeItem(key))
-
-      // 🔍 También podrías limpiar sessionStorage si usás:
       sessionStorage.clear()
 
-      // ✅ Limpiar la URL
+      // Limpiar la URL para evitar bucles
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
     }
+
+    // 🔍 Verificar sesión existente al cargar la aplicación
+    const checkExistingSession = async () => {
+      console.log("🔍 UserContextProvider - checkExistingSession INICIANDO")
+
+      try {
+        const isAuth = authService.isAuthenticated()
+        console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
+
+        if (isAuth) {
+          const currentUser = await authService.getCurrentUser()
+          console.log("👤 UserContextProvider - getCurrentUser resultado:", currentUser)
+
+          if (currentUser) {
+            setUser(currentUser)
+
+            const role = authService.getStoredRole()
+            console.log("🎭 UserContextProvider - Rol obtenido:", role)
+
+            if (role) {
+              authService.redirectToRoleFrontend(role)
+              return
+            }
+          }
+        }
+      } catch (error) {
+        console.error("💥 UserContextProvider - Error al verificar sesión existente:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkExistingSession()
   }, [])
 
   // Verificar sesión existente al cargar la aplicación
