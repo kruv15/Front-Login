@@ -15,117 +15,64 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
+
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
-
-  console.log("🏗️ UserContextProvider - INICIANDO PROVIDER")
-
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  console.log("📊 UserContextProvider - Estado inicial:", { user, isLoading })
-
-  // 🔄 Detectar si viene de un logout externo y limpiar localStorage
-  useEffect(() => {
-    // 🔄 Si viene del logout externo, limpiar tokens ANTES de verificar sesión
-    const url = new URL(window.location.href)
-    const justLoggedOut = url.searchParams.get("logged_out")
-
-    if (justLoggedOut === "true") {
-      console.log("🔄 Login: Detectado return de logout externo, limpiando localStorage...")
-
-      const keys = [
-        "access_token",
-        "refresh_token",
-        "user_data",
-        "user_role",
-        "auth_source",
-        "auth_timestamp",
-      ]
-
-      keys.forEach((key) => localStorage.removeItem(key))
-      sessionStorage.clear()
-
-      // Limpiar la URL para evitar bucles
-      url.searchParams.delete("logged_out")
-      window.history.replaceState({}, document.title, url.pathname + url.search)
-    }
-
-    // 🔍 Verificar sesión existente al cargar la aplicación
-    const checkExistingSession = async () => {
-      console.log("🔍 UserContextProvider - checkExistingSession INICIANDO")
-
-      try {
-        const isAuth = authService.isAuthenticated()
-        console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
-
-        if (isAuth) {
-          const currentUser = await authService.getCurrentUser()
-          console.log("👤 UserContextProvider - getCurrentUser resultado:", currentUser)
-
-          if (currentUser) {
-            setUser(currentUser)
-
-            const role = authService.getStoredRole()
-            console.log("🎭 UserContextProvider - Rol obtenido:", role)
-
-            if (role) {
-              authService.redirectToRoleFrontend(role)
-              return
-            }
-          }
-        }
-      } catch (error) {
-        console.error("💥 UserContextProvider - Error al verificar sesión existente:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkExistingSession()
-  }, [])
-
-  // Verificar sesión existente al cargar la aplicación
   useEffect(() => {
     console.log("🔄 UserContextProvider - useEffect INICIANDO")
 
-    const checkExistingSession = async () => {
-      console.log("🔍 UserContextProvider - checkExistingSession INICIANDO")
+    const handleLogoutRedirectCleanup = () => {
+      const url = new URL(window.location.href)
+      const justLoggedOut = url.searchParams.get("logged_out")
 
+      if (justLoggedOut === "true") {
+        console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
+
+        const keys = [
+          "access_token",
+          "refresh_token",
+          "user_data",
+          "user_role",
+          "auth_source",
+          "auth_timestamp",
+        ]
+
+        keys.forEach((key) => localStorage.removeItem(key))
+        sessionStorage.clear()
+
+        // Limpiar la URL
+        url.searchParams.delete("logged_out")
+        window.history.replaceState({}, document.title, url.pathname + url.search)
+      }
+    }
+
+    const checkExistingSession = async () => {
       try {
-        console.log("🔐 UserContextProvider - Verificando si está autenticado...")
+        handleLogoutRedirectCleanup()
+
         const isAuth = authService.isAuthenticated()
-        console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
+        console.log("🔐 isAuthenticated resultado:", isAuth)
 
         if (isAuth) {
-          console.log("✅ UserContextProvider - Usuario autenticado, obteniendo datos...")
           const currentUser = await authService.getCurrentUser()
-          console.log("👤 UserContextProvider - getCurrentUser resultado:", currentUser)
+          console.log("👤 Usuario obtenido:", currentUser)
 
           if (currentUser) {
-            console.log("✅ UserContextProvider - Datos de usuario obtenidos, actualizando estado...")
             setUser(currentUser)
-
-            // Si hay una sesión válida, redirigir automáticamente
             const role = authService.getStoredRole()
-            console.log("🎭 UserContextProvider - Rol obtenido:", role)
-
             if (role) {
-              console.log("🌐 UserContextProvider - Redirigiendo automáticamente...")
               authService.redirectToRoleFrontend(role)
               return
-            } else {
-              console.log("⚠️ UserContextProvider - No se encontró rol para redirección")
             }
-          } else {
-            console.log("❌ UserContextProvider - No se pudieron obtener datos del usuario")
           }
         } else {
-          console.log("❌ UserContextProvider - Usuario no autenticado")
+          console.log("❌ Usuario no autenticado")
         }
       } catch (error) {
-        console.error("💥 UserContextProvider - Error al verificar sesión existente:", error)
+        console.error("💥 Error al verificar sesión:", error)
       } finally {
-        console.log("🏁 UserContextProvider - Finalizando verificación, setIsLoading(false)")
         setIsLoading(false)
       }
     }
@@ -134,58 +81,32 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const logout = async () => {
-    console.log("🚪 UserContextProvider - logout INICIANDO")
-
     try {
-      console.log("📡 UserContextProvider - Llamando authService.logout()...")
       await authService.logout()
-      console.log("✅ UserContextProvider - authService.logout() completado")
-
-      console.log("🧹 UserContextProvider - Limpiando estado del usuario...")
       setUser(null)
-      console.log("✅ UserContextProvider - Estado limpiado")
-
-      // Recargar la página para limpiar cualquier estado residual
-      console.log("🔄 UserContextProvider - Recargando página...")
       window.location.href = "/"
     } catch (error) {
-      console.error("💥 UserContextProvider - Error durante logout:", error)
+      console.error("💥 Error durante logout:", error)
     }
   }
 
   const checkAndRedirectIfAuthenticated = () => {
-    console.log("🔍 UserContextProvider - checkAndRedirectIfAuthenticated INICIANDO")
-
     const isAuth = authService.isAuthenticated()
-    console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
-
     if (isAuth) {
-      console.log("✅ UserContextProvider - Usuario autenticado, obteniendo rol...")
       const role = authService.getStoredRole()
-      console.log("🎭 UserContextProvider - Rol obtenido:", role)
-
       if (role) {
-        console.log("🌐 UserContextProvider - Redirigiendo...")
         authService.redirectToRoleFrontend(role)
-      } else {
-        console.log("⚠️ UserContextProvider - No se encontró rol")
       }
-    } else {
-      console.log("❌ UserContextProvider - Usuario no autenticado, no se redirige")
     }
   }
 
-  const contextValue = {
-    user,
-    setUser,
-    isLoading,
-    logout,
-    checkAndRedirectIfAuthenticated,
-  }
-
-  console.log("📤 UserContextProvider - Proporcionando contexto:", contextValue)
-
-  return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  return (
+    <UserContext.Provider
+      value={{ user, setUser, isLoading, logout, checkAndRedirectIfAuthenticated }}
+    >
+      {children}
+    </UserContext.Provider>
+  )
 }
 
 export const useUserContext = () => {
