@@ -285,7 +285,9 @@ class AuthService {
       localStorage.removeItem("auth_timestamp")
       sessionStorage.clear()
       console.log("✅ AuthService.logout - localStorage limpiado")
-      window.location.href = "/"
+      setTimeout(() => {
+        window.location.href = "https://front-loginv1.vercel.app/?logged_out=true"
+      }, 500)
     }
   }
 
