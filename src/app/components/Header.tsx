@@ -10,7 +10,7 @@ import Image from 'next/image';
 export default function Header() {
   console.log("🎯 Header - COMPONENTE INICIANDO")
 
-  const { user, isLoading, logout, checkAndRedirectIfAuthenticated } = useUserContext()
+  const { user, isLoading, logout } = useUserContext()
   const [isModalVisible, setModalVisible] = useState(false)
 
   console.log("📊 Header - Estado del contexto:", {
