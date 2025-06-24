@@ -285,7 +285,7 @@ class AuthService {
       localStorage.removeItem("auth_timestamp")
       sessionStorage.clear()
       console.log("✅ AuthService.logout - localStorage limpiado")
-      window.location.href = "/"
+      window.location.href = "/?logged_out=true"
     }
   }
 
