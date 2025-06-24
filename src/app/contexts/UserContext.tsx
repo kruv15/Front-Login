@@ -24,6 +24,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     // ⏱️ 1. Limpiar sincronamente antes de cualquier async
     const url = new URL(window.location.href)
     const justLoggedOut = url.searchParams.get("logged_out")
+    console.log("🧪 UserContextProvider - justLoggedOut:", justLoggedOut)
 
     if (justLoggedOut === "true") {
       console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
