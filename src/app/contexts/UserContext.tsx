@@ -19,6 +19,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     console.log("🔄 UserContextProvider - useEffect INICIANDO")
     // ⏱️ 1. Limpiar sincronamente antes de cualquier async
@@ -45,55 +46,55 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
     }
+    
     // ✅ 2. Luego verificar sesión
-    const checkExistingSession = async () => {
-      console.log("🔍 Verificando si existe un token en localStorage…")
-
-      // 1️⃣ Early-return: si no hay access_token, no seguimos haciendo llamadas
-      const token = localStorage.getItem("access_token")
-      if (!token) {
-        console.log("❌ No hay access_token - terminamos verificación.")
-        setIsLoading(false)
-        return // ← importante: salimos de la función
-      }
-
-      // 2️⃣ Con token presente, sigue tu lógica habitual
-      try {
-        const isAuth = authService.isAuthenticated()
-        console.log("🔐 isAuthenticated resultado:", isAuth)
-
-        if (isAuth) {
-          const currentUser = await authService.getCurrentUser()
-          console.log("👤 Usuario obtenido:", currentUser)
-          if (currentUser) {
-            setUser(currentUser)
-            const role = authService.getStoredRole()
-            if (role) {
-              authService.redirectToRoleFrontend(role)
-              return
-            }
-          }
-        } else {
-          console.log("❌ Usuario no autenticado")
-        }
-      } catch (error) {
-        console.error("💥 Error al verificar sesión:", error)
-        localStorage.clear()
-      } finally {
-        setIsLoading(false)
-      }
-
-      // Verificar si hay sesión de estudiante activa
-      if (studentAuthService.isStudentAuthenticated()) {
-        console.log("🎓 UserContextProvider - Sesión de estudiante encontrada, redirigiendo...")
-        studentAuthService.redirectToStudentFrontendWithData()
-        return
-      }
-    }
-
     checkExistingSession()
   }, [])
 
+  const checkExistingSession = async () => {
+    console.log("🔍 Verificando si existe un token en localStorage…")
+
+    // 1️⃣ Early-return: si no hay access_token, no seguimos haciendo llamadas
+    const token = localStorage.getItem("access_token")
+    if (!token) {
+      console.log("❌ No hay access_token - terminamos verificación.")
+      setIsLoading(false)
+      return // ← importante: salimos de la función
+    }
+
+    // 2️⃣ Con token presente, sigue tu lógica habitual
+    try {
+      const isAuth = authService.isAuthenticated()
+      console.log("🔐 isAuthenticated resultado:", isAuth)
+
+      if (isAuth) {
+        const currentUser = await authService.getCurrentUser()
+        console.log("👤 Usuario obtenido:", currentUser)
+        if (currentUser) {
+          setUser(currentUser)
+          const role = authService.getStoredRole()
+          if (role) {
+            authService.redirectToRoleFrontend(role)
+            return
+          }
+        }
+      } else {
+        console.log("❌ Usuario no autenticado")
+      }
+    } catch (error) {
+      console.error("💥 Error al verificar sesión:", error)
+      localStorage.clear()
+    } finally {
+      setIsLoading(false)
+    }
+
+    // Verificar si hay sesión de estudiante activa
+    if (studentAuthService.isStudentAuthenticated()) {
+      console.log("🎓 UserContextProvider - Sesión de estudiante encontrada, redirigiendo...")
+      studentAuthService.redirectToStudentFrontendWithData()
+      return
+    }
+  }
   const logout = async () => {
     try {
       await authService.logout()
