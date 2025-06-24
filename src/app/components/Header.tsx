@@ -54,7 +54,7 @@ export default function Header() {
     <>
       <header className="w-full bg-white shadow-md py-4 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={100} height={100} />
+          <Image src="/logo-umss.png" alt="Logo" width={100} height={100} />
           <div className="text-xl font-semibold text-[#002855]">Campus Virtual UMSS</div>
         </div>
 
