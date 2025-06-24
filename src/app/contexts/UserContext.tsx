@@ -4,6 +4,7 @@ import type React from "react"
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import { authService, type User } from "../services/authService"
+import { studentAuthService } from "../services/studentAuthService"
 
 interface UserContextType {
   user: User | null
@@ -14,7 +15,6 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
-
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -28,30 +28,32 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     if (justLoggedOut === "true") {
       console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
 
-      const keys = [
-        "access_token",
-        "refresh_token",
-        "user_data",
-        "user_role",
-        "auth_source",
-        "auth_timestamp",
-      ]
+      const keys = ["access_token", "refresh_token", "user_data", "user_role", "auth_source", "auth_timestamp"]
       keys.forEach((key) => localStorage.removeItem(key))
       sessionStorage.clear()
+
+      // Limpiar datos de estudiante si viene de logout
+      if (justLoggedOut === "true") {
+        console.log("🧹 UserContextProvider - Limpiando datos de estudiante por logout externo")
+        localStorage.removeItem("id_estudiante")
+        localStorage.removeItem("correo_estudiante")
+        localStorage.removeItem("nombre_estudiante")
+        localStorage.removeItem("student_auth_source")
+      }
 
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
     }
     // ✅ 2. Luego verificar sesión
     const checkExistingSession = async () => {
-      console.log("🔍 Verificando si existe un token en localStorage…");
+      console.log("🔍 Verificando si existe un token en localStorage…")
 
       // 1️⃣ Early-return: si no hay access_token, no seguimos haciendo llamadas
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token")
       if (!token) {
-        console.log("❌ No hay access_token - terminamos verificación.");
-        setIsLoading(false);
-        return;               // ← importante: salimos de la función
+        console.log("❌ No hay access_token - terminamos verificación.")
+        setIsLoading(false)
+        return // ← importante: salimos de la función
       }
 
       // 2️⃣ Con token presente, sigue tu lógica habitual
@@ -75,9 +77,16 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error("💥 Error al verificar sesión:", error)
-        localStorage.clear();
+        localStorage.clear()
       } finally {
         setIsLoading(false)
+      }
+
+      // Verificar si hay sesión de estudiante activa
+      if (studentAuthService.isStudentAuthenticated()) {
+        console.log("🎓 UserContextProvider - Sesión de estudiante encontrada, redirigiendo...")
+        studentAuthService.redirectToStudentFrontendWithData()
+        return
       }
     }
 
@@ -105,9 +114,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <UserContext.Provider
-      value={{ user, setUser, isLoading, logout, checkAndRedirectIfAuthenticated }}
-    >
+    <UserContext.Provider value={{ user, setUser, isLoading, logout, checkAndRedirectIfAuthenticated }}>
       {children}
     </UserContext.Provider>
   )

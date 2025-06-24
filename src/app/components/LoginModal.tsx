@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { FaUserGraduate, FaChalkboardTeacher, FaShieldAlt, FaEye, FaEyeSlash } from "react-icons/fa"
 import { authService, type LoginCredentials } from "../services/authService"
 import { useUserContext } from "../contexts/UserContext"
+import { studentAuthService, type StudentLoginCredentials } from "../services/studentAuthService"
 
 const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   console.log("🎭 LoginModal - COMPONENTE INICIANDO")
@@ -128,6 +129,44 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     if (!validateFields()) {
       console.log("❌ LoginModal - handleLogin: Validación fallida")
       return
+    }
+
+    // Manejo específico para estudiantes
+    if (role === "estudiante") {
+      console.log("🎓 LoginModal - Procesando login de estudiante...")
+
+      const studentCredentials: StudentLoginCredentials = {
+        correo_estudiante: email,
+        contrasenia: password,
+      }
+
+      console.log("📡 LoginModal - Llamando studentAuthService.login()...")
+      const studentResponse = await studentAuthService.login(studentCredentials)
+      console.log("📨 LoginModal - Respuesta del login de estudiante:", studentResponse)
+
+      if (studentResponse && studentResponse.status === 200) {
+        console.log("✅ LoginModal - LOGIN DE ESTUDIANTE EXITOSO")
+
+        // Cerrar modal
+        console.log("🚪 LoginModal - Cerrando modal...")
+        closeModal()
+
+        // Pequeña pausa para que el usuario vea el cambio
+        console.log("⏱️ LoginModal - Esperando 500ms antes de redirigir...")
+        setTimeout(() => {
+          console.log("🌐 LoginModal - Redirigiendo al frontend de estudiante...")
+          studentAuthService.redirectToStudentFrontendWithData()
+        }, 500)
+
+        return // Salir de la función para no ejecutar el código de administrador
+      } else {
+        console.log("❌ LoginModal - LOGIN DE ESTUDIANTE FALLIDO")
+        const errorMsg = studentResponse?.message || "Error en el inicio de sesión de estudiante"
+        console.log("❌ LoginModal - Mensaje de error:", errorMsg)
+        setError(errorMsg)
+        setIsLoading(false)
+        return
+      }
     }
 
     // Verificar conflicto de sesiones
