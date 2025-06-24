@@ -23,10 +23,6 @@ export default function Header() {
     console.log("🎭 Header - toggleModal INICIANDO")
     console.log("🔍 Header - Estado actual del modal:", isModalVisible)
 
-    // Verificar si ya hay una sesión activa
-    console.log("🔍 Header - Verificando sesión activa...")
-    checkAndRedirectIfAuthenticated()
-
     const newModalState = !isModalVisible
     console.log("🔄 Header - Cambiando estado del modal a:", newModalState)
     setModalVisible(newModalState)
