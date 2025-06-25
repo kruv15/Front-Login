@@ -85,9 +85,9 @@ class AuthService {
       console.log("📤 AuthService.login - REQUEST BODY:", requestBody)
 
       const requestOptions = {
-        method: "POST",
+        method:"POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":"application/json",
         },
         credentials: "include" as RequestCredentials,
         body: JSON.stringify(requestBody),
@@ -99,19 +99,7 @@ class AuthService {
       console.log("📨 AuthService.login - RESPONSE STATUS:", response.status)
       console.log("📨 AuthService.login - RESPONSE HEADERS:", Object.fromEntries(response.headers.entries()))
 
-      let data: AuthResponse
-
-      try {
-        data = await response.json()
-        console.log("📋 AuthService.login - RESPONSE DATA:", data)
-      } catch (parseError) {
-        console.error("💥 AuthService.login - Error al parsear JSON:", parseError)
-        return {
-          success: false,
-          message: "Error al interpretar respuesta del servidor",
-          data: null,
-        }
-      }
+      const data: AuthResponse = await response.json()
       console.log("📋 AuthService.login - RESPONSE DATA:", data)
 
       if (data.success && data.data) {
