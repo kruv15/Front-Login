@@ -5,6 +5,7 @@ import type React from "react"
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import { authService, type User } from "../services/authService"
 import { studentAuthService } from "../services/studentAuthService"
+import { teacherAuthService } from "../services/teacherAuthService"
 
 interface UserContextType {
   user: User | null
@@ -43,10 +44,21 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("student_auth_source")
       }
 
+      // Limpiar datos de docente si viene de logout
+      if (justLoggedOut === "true") {
+        console.log("🧹 UserContextProvider - Limpiando datos de docente por logout externo")
+        localStorage.removeItem("id_docente")
+        localStorage.removeItem("usuario_docente")
+        localStorage.removeItem("nombre_docente")
+        localStorage.removeItem("apellidos_docente")
+        localStorage.removeItem("correo_docente")
+        localStorage.removeItem("teacher_auth_source")
+      }
+
       url.searchParams.delete("logged_out")
       window.history.replaceState({}, document.title, url.pathname + url.search)
     }
-    
+
     // ✅ 2. Luego verificar sesión
     checkExistingSession()
   }, [])
@@ -92,6 +104,13 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     if (studentAuthService.isStudentAuthenticated()) {
       console.log("🎓 UserContextProvider - Sesión de estudiante encontrada, redirigiendo...")
       studentAuthService.redirectToStudentFrontendWithData()
+      return
+    }
+
+    // Verificar si hay sesión de docente activa
+    if (teacherAuthService.isTeacherAuthenticated()) {
+      console.log("👨‍🏫 UserContextProvider - Sesión de docente encontrada, redirigiendo...")
+      teacherAuthService.redirectToTeacherFrontendWithData()
       return
     }
   }
