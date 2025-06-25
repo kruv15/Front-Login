@@ -39,6 +39,8 @@ class StudentAuthService {
         correo_estudiante: credentials.correo_estudiante,
         contrasenia: credentials.contrasenia,
       }
+      console.log("📤 StudentAuthService.login - REQUEST BODY REAL:", requestBody)
+      console.log("📤 JSON enviado al backend:", JSON.stringify(requestBody, null, 2))
       console.log("📤 StudentAuthService.login - REQUEST BODY:", {
         correo_estudiante: requestBody.correo_estudiante ? requestBody.correo_estudiante.substring(0, 3) + "***" : "",
         contrasenia: "***",
