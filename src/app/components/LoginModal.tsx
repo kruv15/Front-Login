@@ -38,6 +38,13 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     }
   }, [])
 
+  useEffect(() => {
+    console.log("🟢 LoginModal - MONTADO")
+    return () => {
+      console.log("🔴 LoginModal - DESMONTADO")
+    }
+  }, [])
+
   // Colores de los roles
   const getRoleColors = (role: string) => {
     console.log("🎨 LoginModal - getRoleColors INPUT:", role)
