@@ -66,6 +66,7 @@ class StudentAuthService {
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
       const data: StudentAuthResponse = await response.json()
+      console.log(response.json())
       console.log("📋 StudentAuthService.login - RESPONSE DATA:", data)
 
       if (data.status === 200 && data.data) {
