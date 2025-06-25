@@ -1,6 +1,6 @@
 // Configuración específica para estudiantes
 const STUDENT_API_BASE_URL = "https://microservice-estudiante.onrender.com/api"
-const STUDENT_FRONTEND_URL = "https://front-estudiantev1.vercel.app"
+const STUDENT_FRONTEND_URL = "https://front-student-git-main-mortalwings-projects.vercel.app"
 
 export interface StudentLoginCredentials {
   correo_estudiante: string
