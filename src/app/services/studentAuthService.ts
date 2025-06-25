@@ -61,12 +61,12 @@ class StudentAuthService {
       })
 
       console.log("📡 StudentAuthService.login - Enviando request al backend de estudiantes...")
+      console.log(`Link:${STUDENT_API_BASE_URL}/login`)
       const response = await fetch(`${STUDENT_API_BASE_URL}/login`, requestOptions)
       console.log("📨 StudentAuthService.login - RESPONSE:", response)
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
       const data: StudentAuthResponse = await response.json()
-      console.log(response.json())
       console.log("📋 StudentAuthService.login - RESPONSE DATA:", data)
 
       if (data.status === 200 && data.data) {
