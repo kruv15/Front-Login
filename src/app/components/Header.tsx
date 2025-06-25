@@ -10,7 +10,7 @@ import Image from 'next/image';
 export default function Header() {
   console.log("🎯 Header - COMPONENTE INICIANDO")
 
-  const { user, isLoading, logout, checkAndRedirectIfAuthenticated } = useUserContext()
+  const { user, isLoading, logout } = useUserContext()
   const [isModalVisible, setModalVisible] = useState(false)
 
   console.log("📊 Header - Estado del contexto:", {
@@ -22,10 +22,6 @@ export default function Header() {
   const toggleModal = () => {
     console.log("🎭 Header - toggleModal INICIANDO")
     console.log("🔍 Header - Estado actual del modal:", isModalVisible)
-
-    // Verificar si ya hay una sesión activa
-    console.log("🔍 Header - Verificando sesión activa...")
-    checkAndRedirectIfAuthenticated()
 
     const newModalState = !isModalVisible
     console.log("🔄 Header - Cambiando estado del modal a:", newModalState)
@@ -54,7 +50,7 @@ export default function Header() {
     <>
       <header className="w-full bg-white shadow-md py-4 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={100} height={100} />
+          <Image src="/logo-umss.png" alt="Logo" width={100} height={100} />
           <div className="text-xl font-semibold text-[#002855]">Campus Virtual UMSS</div>
         </div>
 
