@@ -139,7 +139,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         correo_estudiante: email,
         contrasenia: password,
       }
-
+      console.log("🛠️ Correo ingresada REAL (solo para pruebas):", email)
       console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
       console.log("📡 LoginModal - Llamando studentAuthService.login()...")
       const studentResponse = await studentAuthService.login(studentCredentials)
@@ -199,7 +199,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       })
 
       console.log("🔐 Credenciales enviadas:", credentials)
-      
+
       console.log("📡 LoginModal - Llamando authService.login()...")
       const response = await authService.login(credentials)
       console.log("📨 LoginModal - Respuesta del login:", response)
