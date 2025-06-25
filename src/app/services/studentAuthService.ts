@@ -53,6 +53,7 @@ class StudentAuthService {
         },
         body: JSON.stringify(requestBody),
       }
+      console.log("📦 FINAL Payload enviado al backend:", requestOptions.body)
       console.log("⚙️ StudentAuthService.login - REQUEST OPTIONS:", {
         method: requestOptions.method,
         headers: requestOptions.headers,
