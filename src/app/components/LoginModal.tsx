@@ -86,8 +86,8 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     if (role === "estudiante") {
       console.log("🎓 LoginModal - Validando estudiante...")
       // Para estudiantes, puede ser código SIS o email
-      if (password.length < 15) {
-        const errorMsg = "La contraseña debe tener al menos 15 caracteres"
+      if (password.length < 6) {
+        const errorMsg = "La contraseña debe tener al menos 6 caracteres"
         console.log("❌ LoginModal - validateFields ERROR (estudiante):", errorMsg)
         setError(errorMsg)
         return false
