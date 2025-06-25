@@ -99,7 +99,19 @@ class AuthService {
       console.log("📨 AuthService.login - RESPONSE STATUS:", response.status)
       console.log("📨 AuthService.login - RESPONSE HEADERS:", Object.fromEntries(response.headers.entries()))
 
-      const data: AuthResponse = await response.json()
+      let data: AuthResponse
+
+      try {
+        data = await response.json()
+        console.log("✅ Parsed JSON:", data)
+      } catch (error) {
+        console.error("❌ Error al parsear JSON:", error)
+        return {
+          success: false,
+          message: "Respuesta del servidor no es JSON",
+          data: null,
+        }
+      }
       console.log("📋 AuthService.login - RESPONSE DATA:", data)
 
       if (data.success && data.data) {
