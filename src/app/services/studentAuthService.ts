@@ -57,10 +57,12 @@ class StudentAuthService {
       console.log("⚙️ StudentAuthService.login - REQUEST OPTIONS:", {
         method: requestOptions.method,
         headers: requestOptions.headers,
+        body: requestOptions.body,
       })
 
       console.log("📡 StudentAuthService.login - Enviando request al backend de estudiantes...")
       const response = await fetch(`${STUDENT_API_BASE_URL}/login`, requestOptions)
+      console.log("📨 StudentAuthService.login - RESPONSE:", response)
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
       const data: StudentAuthResponse = await response.json()
