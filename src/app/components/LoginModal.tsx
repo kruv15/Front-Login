@@ -140,6 +140,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         contrasenia: password,
       }
 
+      console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
       console.log("📡 LoginModal - Llamando studentAuthService.login()...")
       const studentResponse = await studentAuthService.login(studentCredentials)
       console.log("📨 LoginModal - Respuesta del login de estudiante:", studentResponse)
@@ -197,6 +198,8 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         role: credentials.role,
       })
 
+      console.log("🔐 Credenciales enviadas:", credentials)
+      
       console.log("📡 LoginModal - Llamando authService.login()...")
       const response = await authService.login(credentials)
       console.log("📨 LoginModal - Respuesta del login:", response)
