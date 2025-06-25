@@ -6,6 +6,8 @@ import { useEffect, useState } from "react"
 import { FaUserGraduate, FaChalkboardTeacher, FaShieldAlt, FaEye, FaEyeSlash } from "react-icons/fa"
 import { authService, type LoginCredentials } from "../services/authService"
 import { useUserContext } from "../contexts/UserContext"
+import { studentAuthService, type StudentLoginCredentials } from "../services/studentAuthService"
+import { teacherAuthService, type TeacherLoginCredentials } from "../services/teacherAuthService"
 
 const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   console.log("🎭 LoginModal - COMPONENTE INICIANDO")
@@ -92,13 +94,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       }
     } else if (role === "docente") {
       console.log("👨‍🏫 LoginModal - Validando docente...")
-      // Para docentes, debe ser email institucional
-      if (!/\S+@\S+\.\S+/.test(email)) {
-        const errorMsg = "Por favor ingrese un correo electrónico válido"
-        console.log("❌ LoginModal - validateFields ERROR (docente):", errorMsg)
-        setError(errorMsg)
-        return false
-      }
+      // Para docentes, puede ser usuario o email
       if (password.length < 6) {
         const errorMsg = "La contraseña debe tener al menos 6 caracteres"
         console.log("❌ LoginModal - validateFields ERROR (docente):", errorMsg)
@@ -130,6 +126,84 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       return
     }
 
+    // Manejo específico para estudiantes
+    if (role === "estudiante") {
+      console.log("🎓 LoginModal - Procesando login de estudiante...")
+
+      const studentCredentials: StudentLoginCredentials = {
+        correo_estudiante: email,
+        contrasenia: password,
+      }
+      console.log("🛠️ Correo ingresada REAL (solo para pruebas):", email)
+      console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
+      console.log("📡 LoginModal - Llamando studentAuthService.login()...")
+      const studentResponse = await studentAuthService.login(studentCredentials)
+      console.log("📨 LoginModal - Respuesta del login de estudiante:", studentResponse)
+
+      if (studentResponse && studentResponse.status === 200) {
+        console.log("✅ LoginModal - LOGIN DE ESTUDIANTE EXITOSO")
+
+        // Cerrar modal
+        console.log("🚪 LoginModal - Cerrando modal...")
+        closeModal()
+
+        // Pequeña pausa para que el usuario vea el cambio
+        console.log("⏱️ LoginModal - Esperando 500ms antes de redirigir...")
+        setTimeout(() => {
+          console.log("🌐 LoginModal - Redirigiendo al frontend de estudiante...")
+          studentAuthService.redirectToStudentFrontendWithData()
+        }, 500)
+
+        return // Salir de la función para no ejecutar el código de administrador
+      } else {
+        console.log("❌ LoginModal - LOGIN DE ESTUDIANTE FALLIDO")
+        const errorMsg = studentResponse?.message || "Error en el inicio de sesión de estudiante"
+        console.log("❌ LoginModal - Mensaje de error:", errorMsg)
+        setError(errorMsg)
+        setIsLoading(false)
+        return
+      }
+    }
+
+    // Manejo específico para docentes
+    if (role === "docente") {
+      console.log("👨‍🏫 LoginModal - Procesando login de docente...")
+
+      const teacherCredentials: TeacherLoginCredentials = {
+        user: email,
+        password: password,
+      }
+      console.log("🛠️ Usuario ingresado REAL (solo para pruebas):", email)
+      console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
+      console.log("📡 LoginModal - Llamando teacherAuthService.login()...")
+      const teacherResponse = await teacherAuthService.login(teacherCredentials)
+      console.log("📨 LoginModal - Respuesta del login de docente:", teacherResponse)
+
+      if (teacherResponse && teacherResponse.status === 200) {
+        console.log("✅ LoginModal - LOGIN DE DOCENTE EXITOSO")
+
+        // Cerrar modal
+        console.log("🚪 LoginModal - Cerrando modal...")
+        closeModal()
+
+        // Pequeña pausa para que el usuario vea el cambio
+        console.log("⏱️ LoginModal - Esperando 500ms antes de redirigir...")
+        setTimeout(() => {
+          console.log("🌐 LoginModal - Redirigiendo al frontend de docente...")
+          teacherAuthService.redirectToTeacherFrontendWithData()
+        }, 500)
+
+        return // Salir de la función para no ejecutar el código de administrador
+      } else {
+        console.log("❌ LoginModal - LOGIN DE DOCENTE FALLIDO")
+        const errorMsg = teacherResponse?.message || "Error en el inicio de sesión de docente"
+        console.log("❌ LoginModal - Mensaje de error:", errorMsg)
+        setError(errorMsg)
+        setIsLoading(false)
+        return
+      }
+    }
+
     // Verificar conflicto de sesiones
     console.log("⚔️ LoginModal - Verificando conflicto de sesiones...")
     const hasConflict = authService.checkSessionConflict(role)
@@ -157,6 +231,8 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         password: "***",
         role: credentials.role,
       })
+
+      console.log("🔐 Credenciales enviadas:", credentials)
 
       console.log("📡 LoginModal - Llamando authService.login()...")
       const response = await authService.login(credentials)
@@ -311,7 +387,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
             <>
               <input
                 type="text"
-                placeholder="Código SIS o Email"
+                placeholder="Email"
                 className="input-field"
                 value={email}
                 onChange={handleEmailChange}
@@ -339,8 +415,8 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
           {role === "docente" && (
             <>
               <input
-                type="email"
-                placeholder="Correo institucional"
+                type="text"
+                placeholder="Usuario"
                 className="input-field"
                 value={email}
                 onChange={handleEmailChange}
@@ -369,7 +445,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
             <>
               <input
                 type="text"
-                placeholder="Usuario o Email"
+                placeholder="Email"
                 className="input-field"
                 value={email}
                 onChange={handleEmailChange}

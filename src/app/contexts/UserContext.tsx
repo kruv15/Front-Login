@@ -4,6 +4,8 @@ import type React from "react"
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import { authService, type User } from "../services/authService"
+import { studentAuthService } from "../services/studentAuthService"
+import { teacherAuthService } from "../services/teacherAuthService"
 
 interface UserContextType {
   user: User | null
@@ -16,115 +18,127 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
-  console.log("🏗️ UserContextProvider - INICIANDO PROVIDER")
-
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  console.log("📊 UserContextProvider - Estado inicial:", { user, isLoading })
-
-  // Verificar sesión existente al cargar la aplicación
   useEffect(() => {
     console.log("🔄 UserContextProvider - useEffect INICIANDO")
+    // ⏱️ 1. Limpiar sincronamente antes de cualquier async
+    const url = new URL(window.location.href)
+    const justLoggedOut = url.searchParams.get("logged_out")
+    console.log("🧪 UserContextProvider - justLoggedOut:", justLoggedOut)
 
-    const checkExistingSession = async () => {
-      console.log("🔍 UserContextProvider - checkExistingSession INICIANDO")
+    if (justLoggedOut === "true") {
+      console.log("🧹 UserContextProvider - Limpiando localStorage por logout externo")
 
-      try {
-        console.log("🔐 UserContextProvider - Verificando si está autenticado...")
-        const isAuth = authService.isAuthenticated()
-        console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
+      const keys = ["access_token", "refresh_token", "user_data", "user_role", "auth_source", "auth_timestamp"]
+      keys.forEach((key) => localStorage.removeItem(key))
+      sessionStorage.clear()
 
-        if (isAuth) {
-          console.log("✅ UserContextProvider - Usuario autenticado, obteniendo datos...")
-          const currentUser = await authService.getCurrentUser()
-          console.log("👤 UserContextProvider - getCurrentUser resultado:", currentUser)
-
-          if (currentUser) {
-            console.log("✅ UserContextProvider - Datos de usuario obtenidos, actualizando estado...")
-            setUser(currentUser)
-
-            // Si hay una sesión válida, redirigir automáticamente
-            const role = authService.getStoredRole()
-            console.log("🎭 UserContextProvider - Rol obtenido:", role)
-
-            if (role) {
-              console.log("🌐 UserContextProvider - Redirigiendo automáticamente...")
-              authService.redirectToRoleFrontend(role)
-              return
-            } else {
-              console.log("⚠️ UserContextProvider - No se encontró rol para redirección")
-            }
-          } else {
-            console.log("❌ UserContextProvider - No se pudieron obtener datos del usuario")
-          }
-        } else {
-          console.log("❌ UserContextProvider - Usuario no autenticado")
-        }
-      } catch (error) {
-        console.error("💥 UserContextProvider - Error al verificar sesión existente:", error)
-      } finally {
-        console.log("🏁 UserContextProvider - Finalizando verificación, setIsLoading(false)")
-        setIsLoading(false)
+      // Limpiar datos de estudiante si viene de logout
+      if (justLoggedOut === "true") {
+        console.log("🧹 UserContextProvider - Limpiando datos de estudiante por logout externo")
+        localStorage.removeItem("id_estudiante")
+        localStorage.removeItem("correo_estudiante")
+        localStorage.removeItem("nombre_estudiante")
+        localStorage.removeItem("student_auth_source")
       }
+
+      // Limpiar datos de docente si viene de logout
+      if (justLoggedOut === "true") {
+        console.log("🧹 UserContextProvider - Limpiando datos de docente por logout externo")
+        localStorage.removeItem("id_docente")
+        localStorage.removeItem("usuario_docente")
+        localStorage.removeItem("nombre_docente")
+        localStorage.removeItem("apellidos_docente")
+        localStorage.removeItem("correo_docente")
+        localStorage.removeItem("teacher_auth_source")
+      }
+
+      url.searchParams.delete("logged_out")
+      window.history.replaceState({}, document.title, url.pathname + url.search)
     }
 
+    // ✅ 2. Luego verificar sesión
     checkExistingSession()
   }, [])
 
-  const logout = async () => {
-    console.log("🚪 UserContextProvider - logout INICIANDO")
+  const checkExistingSession = async () => {
+    console.log("🔍 Verificando si existe un token en localStorage…")
 
+    // 1️⃣ Early-return: si no hay access_token, no seguimos haciendo llamadas
+    const token = localStorage.getItem("access_token")
+    if (!token) {
+      console.log("❌ No hay access_token - terminamos verificación.")
+      setIsLoading(false)
+      return // ← importante: salimos de la función
+    }
+
+    // 2️⃣ Con token presente, sigue tu lógica habitual
     try {
-      console.log("📡 UserContextProvider - Llamando authService.logout()...")
+      const isAuth = authService.isAuthenticated()
+      console.log("🔐 isAuthenticated resultado:", isAuth)
+
+      if (isAuth) {
+        const currentUser = await authService.getCurrentUser()
+        console.log("👤 Usuario obtenido:", currentUser)
+        if (currentUser) {
+          setUser(currentUser)
+          const role = authService.getStoredRole()
+          if (role) {
+            authService.redirectToRoleFrontend(role)
+            return
+          }
+        }
+      } else {
+        console.log("❌ Usuario no autenticado")
+      }
+    } catch (error) {
+      console.error("💥 Error al verificar sesión:", error)
+      localStorage.clear()
+    } finally {
+      setIsLoading(false)
+    }
+
+    // Verificar si hay sesión de estudiante activa
+    if (studentAuthService.isStudentAuthenticated()) {
+      console.log("🎓 UserContextProvider - Sesión de estudiante encontrada, redirigiendo...")
+      studentAuthService.redirectToStudentFrontendWithData()
+      return
+    }
+
+    // Verificar si hay sesión de docente activa
+    if (teacherAuthService.isTeacherAuthenticated()) {
+      console.log("👨‍🏫 UserContextProvider - Sesión de docente encontrada, redirigiendo...")
+      teacherAuthService.redirectToTeacherFrontendWithData()
+      return
+    }
+  }
+  const logout = async () => {
+    try {
       await authService.logout()
-      console.log("✅ UserContextProvider - authService.logout() completado")
-
-      console.log("🧹 UserContextProvider - Limpiando estado del usuario...")
       setUser(null)
-      console.log("✅ UserContextProvider - Estado limpiado")
-
-      // Recargar la página para limpiar cualquier estado residual
-      console.log("🔄 UserContextProvider - Recargando página...")
       window.location.href = "/"
     } catch (error) {
-      console.error("💥 UserContextProvider - Error durante logout:", error)
+      console.error("💥 Error durante logout:", error)
     }
   }
 
   const checkAndRedirectIfAuthenticated = () => {
-    console.log("🔍 UserContextProvider - checkAndRedirectIfAuthenticated INICIANDO")
-
     const isAuth = authService.isAuthenticated()
-    console.log("🔐 UserContextProvider - isAuthenticated resultado:", isAuth)
-
     if (isAuth) {
-      console.log("✅ UserContextProvider - Usuario autenticado, obteniendo rol...")
       const role = authService.getStoredRole()
-      console.log("🎭 UserContextProvider - Rol obtenido:", role)
-
       if (role) {
-        console.log("🌐 UserContextProvider - Redirigiendo...")
         authService.redirectToRoleFrontend(role)
-      } else {
-        console.log("⚠️ UserContextProvider - No se encontró rol")
       }
-    } else {
-      console.log("❌ UserContextProvider - Usuario no autenticado, no se redirige")
     }
   }
 
-  const contextValue = {
-    user,
-    setUser,
-    isLoading,
-    logout,
-    checkAndRedirectIfAuthenticated,
-  }
-
-  console.log("📤 UserContextProvider - Proporcionando contexto:", contextValue)
-
-  return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
+  return (
+    <UserContext.Provider value={{ user, setUser, isLoading, logout, checkAndRedirectIfAuthenticated }}>
+      {children}
+    </UserContext.Provider>
+  )
 }
 
 export const useUserContext = () => {

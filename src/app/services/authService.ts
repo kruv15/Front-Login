@@ -281,8 +281,13 @@ class AuthService {
       localStorage.removeItem("refresh_token")
       localStorage.removeItem("user_data")
       localStorage.removeItem("user_role")
+      localStorage.removeItem("auth_source")
+      localStorage.removeItem("auth_timestamp")
       sessionStorage.clear()
       console.log("✅ AuthService.logout - localStorage limpiado")
+      setTimeout(() => {
+        window.location.href = "https://front-loginv1.vercel.app/?logged_out=true"
+      }, 500)
     }
   }
 
@@ -364,7 +369,7 @@ class AuthService {
   }
 
   // FUNCIÓN ACTUALIZADA: Redirigir con tokens en query string
-  redirectToRoleFrontendWithTokens(role: string): void {
+  async redirectToRoleFrontendWithTokens(role: string): Promise<void> {
     console.log("🌐 AuthService.redirectToRoleFrontendWithTokens - INICIANDO")
     console.log("📥 AuthService.redirectToRoleFrontendWithTokens - INPUT role:", role)
 
@@ -417,7 +422,7 @@ class AuthService {
 
       // Limpiar localStorage local antes de redirigir (opcional)
       console.log("🧹 AuthService.redirectToRoleFrontendWithTokens - Limpiando localStorage local...")
-      this.logout()
+      await this.logout()
 
       console.log("🚀 AuthService.redirectToRoleFrontendWithTokens - REDIRIGIENDO...")
       // Redirigir con tokens en la URL
