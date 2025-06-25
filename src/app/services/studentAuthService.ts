@@ -14,7 +14,7 @@ export interface StudentData {
 }
 
 export interface StudentAuthResponse {
-  data: StudentData
+  data: StudentData | null
   message: string
   status: number
 }
@@ -66,7 +66,19 @@ class StudentAuthService {
       console.log("📨 StudentAuthService.login - RESPONSE:", response)
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
-      const data: StudentAuthResponse = await response.json()
+      let data: StudentAuthResponse
+
+      try {
+        data = await response.json()
+        console.log("📋 StudentAuthService.login - RESPONSE DATA:", data)
+      } catch (error) {
+        console.error("💥 StudentAuthService.login - Error al parsear JSON:", error)
+        return {
+          status: response.status,
+          message: "Respuesta inválida del servidor (no es JSON)",
+          data: null,
+        }
+      }
       console.log("📋 StudentAuthService.login - RESPONSE DATA:", data)
 
       if (data.status === 200 && data.data) {

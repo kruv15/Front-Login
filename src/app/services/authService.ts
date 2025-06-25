@@ -85,9 +85,9 @@ class AuthService {
       console.log("📤 AuthService.login - REQUEST BODY:", requestBody)
 
       const requestOptions = {
-        method:"POST",
+        method: "POST",
         headers: {
-          "Content-Type":"application/json",
+          "Content-Type": "application/json",
         },
         credentials: "include" as RequestCredentials,
         body: JSON.stringify(requestBody),
