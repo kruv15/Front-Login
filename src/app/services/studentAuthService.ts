@@ -62,7 +62,7 @@ class StudentAuthService {
 
       console.log("📡 StudentAuthService.login - Enviando request al backend de estudiantes...")
       console.log(`Link:${STUDENT_API_BASE_URL}/login`)
-      const response = await fetch(`${STUDENT_API_BASE_URL}/login`, requestOptions)
+      const response = await fetch("https://microservice-estudiante.onrender.com/api/login", requestOptions)
       console.log("📨 StudentAuthService.login - RESPONSE:", response)
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
