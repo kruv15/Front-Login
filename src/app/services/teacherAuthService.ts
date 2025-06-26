@@ -1,6 +1,6 @@
 // Configuración específica para docentes
 const TEACHER_API_BASE_URL = "https://microservice-docente.onrender.com/apidocentes/v1/docente"
-const TEACHER_FRONTEND_URL = "https://front-docentev1.vercel.app"
+const TEACHER_FRONTEND_URL = "https://front-student-mlcjdk0ht-mortalwings-projects.vercel.app/"
 
 export interface TeacherLoginCredentials {
   user: string
