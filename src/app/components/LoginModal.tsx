@@ -280,20 +280,6 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     }
   }
 
-  // Datos de prueba para desarrollo
-  const fillTestData = () => {
-    console.log("🧪 LoginModal - fillTestData INICIANDO")
-    console.log("🧪 LoginModal - Rol actual:", role)
-
-    if (role === "administrador") {
-      console.log("🧪 LoginModal - Llenando datos de prueba para administrador...")
-      setEmail("admin@gmail.com")
-      setPassword("123456")
-      console.log("✅ LoginModal - Datos de prueba establecidos")
-    } else {
-      console.log("⚠️ LoginModal - No hay datos de prueba para el rol:", role)
-    }
-  }
 
   // Handlers para cambios de estado
   const handleRoleChange = (newRole: "estudiante" | "docente" | "administrador") => {
@@ -507,20 +493,6 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
           <a href="#" className="forgot-password block">
             ¿Olvidaste tu contraseña?
           </a>
-
-          {/* Botón de datos de prueba (solo en desarrollo) */}
-          {process.env.NODE_ENV === "development" && role === "administrador" && (
-            <button
-              onClick={() => {
-                console.log("🧪 LoginModal - Click en llenar datos de prueba")
-                fillTestData()
-              }}
-              className="text-xs text-white opacity-70 hover:opacity-100 underline"
-              disabled={isLoading}
-            >
-              Llenar datos de prueba
-            </button>
-          )}
         </div>
       </div>
     </div>
