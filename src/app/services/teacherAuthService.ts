@@ -1,10 +1,9 @@
-// Configuración específica para docentes
-const TEACHER_API_BASE_URL = "https://microservice-docente.onrender.com/apidocentes/v1/docente"
-const TEACHER_FRONTEND_URL = "https://front-docente.onrender.com"
+import { getURLConfig } from "../config/urls"
 
 export interface TeacherLoginCredentials {
   user: string
   password: string
+  useLocalhost?: boolean // Nuevo parámetro opcional
 }
 
 export interface TeacherData {
@@ -41,9 +40,14 @@ class TeacherAuthService {
     console.log("📥 TeacherAuthService.login - INPUT credentials:", {
       user: credentials.user ? credentials.user.substring(0, 3) + "***" : "",
       password: "***",
+      useLocalhost: credentials.useLocalhost,
     })
 
     try {
+      const urlConfig = getURLConfig(credentials.useLocalhost || false)
+      const apiUrl = `${urlConfig.backDocente}/login`
+      console.log("🌐 TeacherAuthService.login - API URL:", apiUrl)
+
       const requestBody = {
         user: credentials.user,
         password: credentials.password,
@@ -70,8 +74,8 @@ class TeacherAuthService {
       })
 
       console.log("📡 TeacherAuthService.login - Enviando request al backend de docentes...")
-      console.log(`Link: ${TEACHER_API_BASE_URL}/login`)
-      const response = await fetch(`${TEACHER_API_BASE_URL}/login`, requestOptions)
+      console.log(`Link: ${apiUrl}`)
+      const response = await fetch(apiUrl, requestOptions)
       console.log("📨 TeacherAuthService.login - RESPONSE:", response)
       console.log("📨 TeacherAuthService.login - RESPONSE STATUS:", response.status)
 
@@ -113,6 +117,10 @@ class TeacherAuthService {
 
         localStorage.setItem("teacher_auth_source", "front-login")
         console.log("💾 TeacherAuthService.login - teacher_auth_source guardado")
+
+        // Guardar el modo de URL para usar en redirección
+        localStorage.setItem("teacher_use_localhost", credentials.useLocalhost ? "true" : "false")
+        console.log("💾 TeacherAuthService.login - teacher_use_localhost guardado:", credentials.useLocalhost)
 
         console.log("💾 TeacherAuthService.login - Todos los datos del docente guardados")
       } else {
@@ -225,18 +233,24 @@ class TeacherAuthService {
     console.log("🌐 TeacherAuthService.redirectToTeacherFrontendWithData - INICIANDO")
 
     const teacherData = this.getStoredTeacherData()
+    const useLocalhost = localStorage.getItem("teacher_use_localhost") === "true"
     console.log("🔍 TeacherAuthService.redirectToTeacherFrontendWithData - Datos del docente:", teacherData)
+    console.log("🔍 TeacherAuthService.redirectToTeacherFrontendWithData - Usar localhost:", useLocalhost)
 
     if (!teacherData) {
       console.error("❌ TeacherAuthService.redirectToTeacherFrontendWithData - No hay datos del docente")
+      const urlConfig = getURLConfig(useLocalhost)
       console.log("🔄 TeacherAuthService.redirectToTeacherFrontendWithData - Redirigiendo sin datos")
-      window.location.href = TEACHER_FRONTEND_URL
+      window.location.href = urlConfig.frontDocente
       return
     }
 
     try {
+      const urlConfig = getURLConfig(useLocalhost)
+      const frontendUrl = urlConfig.frontDocente
+
       // Crear URL con datos del docente
-      const authenticatedUrl = this.createTeacherAuthenticatedUrl(TEACHER_FRONTEND_URL, teacherData)
+      const authenticatedUrl = this.createTeacherAuthenticatedUrl(frontendUrl, teacherData)
       console.log("✅ TeacherAuthService.redirectToTeacherFrontendWithData - URL autenticada creada")
 
       console.log("🚀 TeacherAuthService.redirectToTeacherFrontendWithData - REDIRIGIENDO...")
@@ -244,8 +258,9 @@ class TeacherAuthService {
       window.location.href = authenticatedUrl
     } catch (error) {
       console.error("💥 TeacherAuthService.redirectToTeacherFrontendWithData - ERROR:", error)
+      const urlConfig = getURLConfig(useLocalhost)
       console.log("🔄 TeacherAuthService.redirectToTeacherFrontendWithData - Redirigiendo sin datos como fallback")
-      window.location.href = TEACHER_FRONTEND_URL
+      window.location.href = urlConfig.frontDocente
     }
   }
 
@@ -260,6 +275,7 @@ class TeacherAuthService {
     localStorage.removeItem("apellidos_docente")
     localStorage.removeItem("correo_docente")
     localStorage.removeItem("teacher_auth_source")
+    localStorage.removeItem("teacher_use_localhost")
 
     console.log("✅ TeacherAuthService.logoutTeacher - localStorage de docente limpiado")
   }

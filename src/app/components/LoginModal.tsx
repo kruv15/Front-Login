@@ -18,6 +18,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [useLocalhost, setUseLocalhost] = useState<boolean>(false) // Nuevo estado para el switch
   const { setUser } = useUserContext()
 
   console.log("📊 LoginModal - Estado inicial:", {
@@ -27,6 +28,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     showPassword,
     error,
     isLoading,
+    useLocalhost,
   })
 
   // Bloquea el scroll cuando el modal se monta
@@ -73,6 +75,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       email: email ? email.substring(0, 3) + "***" : "",
       password: password ? "***" : "",
       role,
+      useLocalhost,
     })
 
     if (!email || !password) {
@@ -120,6 +123,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   // Manejo del login
   const handleLogin = async () => {
     console.log("🚀 LoginModal - handleLogin INICIANDO")
+    console.log("🔧 LoginModal - Modo seleccionado:", useLocalhost ? "LOCALHOST" : "PRODUCTION")
 
     if (!validateFields()) {
       console.log("❌ LoginModal - handleLogin: Validación fallida")
@@ -133,9 +137,11 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       const studentCredentials: StudentLoginCredentials = {
         correo_estudiante: email,
         contrasenia: password,
+        useLocalhost: useLocalhost, // Pasar el modo
       }
       console.log("🛠️ Correo ingresada REAL (solo para pruebas):", email)
       console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
+      console.log("🔧 Modo localhost:", useLocalhost)
       console.log("📡 LoginModal - Llamando studentAuthService.login()...")
       const studentResponse = await studentAuthService.login(studentCredentials)
       console.log("📨 LoginModal - Respuesta del login de estudiante:", studentResponse)
@@ -172,9 +178,11 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       const teacherCredentials: TeacherLoginCredentials = {
         user: email,
         password: password,
+        useLocalhost: useLocalhost, // Pasar el modo
       }
       console.log("🛠️ Usuario ingresado REAL (solo para pruebas):", email)
       console.log("🛠️ Password ingresada REAL (solo para pruebas):", password)
+      console.log("🔧 Modo localhost:", useLocalhost)
       console.log("📡 LoginModal - Llamando teacherAuthService.login()...")
       const teacherResponse = await teacherAuthService.login(teacherCredentials)
       console.log("📨 LoginModal - Respuesta del login de docente:", teacherResponse)
@@ -225,11 +233,13 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         email: email,
         password: password,
         role: role,
+        useLocalhost: useLocalhost, // Pasar el modo
       }
       console.log("📤 LoginModal - Credenciales preparadas:", {
         email: credentials.email ? credentials.email.substring(0, 3) + "***" : "",
         password: "***",
         role: credentials.role,
+        useLocalhost: credentials.useLocalhost,
       })
 
       console.log("🔐 Credenciales enviadas:", credentials)
@@ -280,7 +290,6 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     }
   }
 
-
   // Handlers para cambios de estado
   const handleRoleChange = (newRole: "estudiante" | "docente" | "administrador") => {
     console.log("🎭 LoginModal - handleRoleChange:", { from: role, to: newRole })
@@ -304,6 +313,11 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     setShowPassword(!showPassword)
   }
 
+  const handleLocalhostToggle = () => {
+    console.log("🔧 LoginModal - handleLocalhostToggle:", { from: useLocalhost, to: !useLocalhost })
+    setUseLocalhost(!useLocalhost)
+  }
+
   console.log("🎭 LoginModal - RENDERIZANDO con estado:", {
     role,
     email: email ? email.substring(0, 3) + "***" : "",
@@ -311,6 +325,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
     showPassword,
     error,
     isLoading,
+    useLocalhost,
     colorStart,
     colorEnd,
   })
@@ -339,6 +354,42 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         >
           ← Volver al inicio
         </button>
+
+        {/* Switch siempre visible */}
+        <div className="mb-4 p-4 bg-white bg-opacity-20 rounded-lg">
+          <div className="text-center mb-3">
+            <p className="text-black text-sm font-medium">
+              {useLocalhost ? "🔧 Redirigirá a: Localhost (Desarrollo)" : "🌐 Redirigirá a: Deploy (Producción)"}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-3">
+            <span className={`text-black text-sm ${!useLocalhost ? "font-bold" : "opacity-70"}`}>Deploy</span>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useLocalhost}
+                onChange={handleLocalhostToggle}
+                className="sr-only peer"
+                disabled={isLoading}
+              />
+              <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-500"></div>
+            </label>
+
+            <span className={`text-black text-sm ${useLocalhost ? "font-bold" : "opacity-70"}`}>Localhost</span>
+          </div>
+
+          {useLocalhost && (
+            <div className="mt-3 text-xs text-black opacity-90 text-center">
+              <p className="mb-1">
+                🔧 <strong>Puertos locales:</strong>
+              </p>
+              <p>Admin: :3002 | Docente: :3001 | Estudiante: :3004</p>
+              <p>Back-Admin: :4001 | Back-Estudiante: :4002 | Back-Docente: :4003</p>
+            </div>
+          )}
+        </div>
 
         <div className="role-selection mb-4 flex justify-between gap-4">
           <button
@@ -490,9 +541,6 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
 
         {/* Enlaces adicionales */}
         <div className="mt-4 text-center space-y-2">
-          <a href="#" className="forgot-password block">
-            ¿Olvidaste tu contraseña?
-          </a>
         </div>
       </div>
     </div>

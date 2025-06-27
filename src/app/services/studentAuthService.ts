@@ -1,10 +1,9 @@
-// Configuración específica para estudiantes
-const STUDENT_API_BASE_URL = "https://microservice-estudiante.onrender.com/api"
-const STUDENT_FRONTEND_URL = "https://front-student-smoky.vercel.app/"
+import { getURLConfig } from "../config/urls"
 
 export interface StudentLoginCredentials {
   correo_estudiante: string
   contrasenia: string
+  useLocalhost?: boolean // Nuevo parámetro opcional
 }
 
 export interface StudentData {
@@ -32,18 +31,23 @@ class StudentAuthService {
     console.log("📥 StudentAuthService.login - INPUT credentials:", {
       correo_estudiante: credentials.correo_estudiante ? credentials.correo_estudiante.substring(0, 3) + "***" : "",
       contrasenia: "***",
+      useLocalhost: credentials.useLocalhost,
     })
 
     try {
+      const urlConfig = getURLConfig(credentials.useLocalhost || false)
+      const apiUrl = `${urlConfig.backEstudiante}/login`
+      console.log("🌐 StudentAuthService.login - API URL:", apiUrl)
+
       const requestBody = {
         correo_estudiante: credentials.correo_estudiante,
         contrasenia: credentials.contrasenia,
       }
-      console.log("📤 StudentAuthService.login - REQUEST BODY REAL:",requestBody)
-      console.log("📤 JSON enviado al backend:",JSON.stringify(requestBody, null, 2))
+      console.log("📤 StudentAuthService.login - REQUEST BODY REAL:", requestBody)
+      console.log("📤 JSON enviado al backend:", JSON.stringify(requestBody, null, 2))
       console.log("📤 StudentAuthService.login - REQUEST BODY:", {
-        correo_estudiante:requestBody.correo_estudiante ? requestBody.correo_estudiante.substring(0, 3) + "***" : "",
-        contrasenia:"***",
+        correo_estudiante: requestBody.correo_estudiante ? requestBody.correo_estudiante.substring(0, 3) + "***" : "",
+        contrasenia: "***",
       })
 
       const requestOptions = {
@@ -61,8 +65,8 @@ class StudentAuthService {
       })
 
       console.log("📡 StudentAuthService.login - Enviando request al backend de estudiantes...")
-      console.log(`Link:${STUDENT_API_BASE_URL}/login`)
-      const response = await fetch("https://microservice-estudiante.onrender.com/api/login", requestOptions)
+      console.log(`Link: ${apiUrl}`)
+      const response = await fetch(apiUrl, requestOptions)
       console.log("📨 StudentAuthService.login - RESPONSE:", response)
       console.log("📨 StudentAuthService.login - RESPONSE STATUS:", response.status)
 
@@ -97,6 +101,10 @@ class StudentAuthService {
 
         localStorage.setItem("student_auth_source", "front-login")
         console.log("💾 StudentAuthService.login - student_auth_source guardado")
+
+        // Guardar el modo de URL para usar en redirección
+        localStorage.setItem("student_use_localhost", credentials.useLocalhost ? "true" : "false")
+        console.log("💾 StudentAuthService.login - student_use_localhost guardado:", credentials.useLocalhost)
 
         console.log("💾 StudentAuthService.login - Todos los datos del estudiante guardados")
       } else {
@@ -196,18 +204,24 @@ class StudentAuthService {
     console.log("🌐 StudentAuthService.redirectToStudentFrontendWithData - INICIANDO")
 
     const studentData = this.getStoredStudentData()
+    const useLocalhost = localStorage.getItem("student_use_localhost") === "true"
     console.log("🔍 StudentAuthService.redirectToStudentFrontendWithData - Datos del estudiante:", studentData)
+    console.log("🔍 StudentAuthService.redirectToStudentFrontendWithData - Usar localhost:", useLocalhost)
 
     if (!studentData) {
       console.error("❌ StudentAuthService.redirectToStudentFrontendWithData - No hay datos del estudiante")
+      const urlConfig = getURLConfig(useLocalhost)
       console.log("🔄 StudentAuthService.redirectToStudentFrontendWithData - Redirigiendo sin datos")
-      window.location.href = STUDENT_FRONTEND_URL
+      window.location.href = urlConfig.frontEstudiante
       return
     }
 
     try {
+      const urlConfig = getURLConfig(useLocalhost)
+      const frontendUrl = urlConfig.frontEstudiante
+
       // Crear URL con datos del estudiante
-      const authenticatedUrl = this.createStudentAuthenticatedUrl(STUDENT_FRONTEND_URL, studentData)
+      const authenticatedUrl = this.createStudentAuthenticatedUrl(frontendUrl, studentData)
       console.log("✅ StudentAuthService.redirectToStudentFrontendWithData - URL autenticada creada")
 
       console.log("🚀 StudentAuthService.redirectToStudentFrontendWithData - REDIRIGIENDO...")
@@ -215,8 +229,9 @@ class StudentAuthService {
       window.location.href = authenticatedUrl
     } catch (error) {
       console.error("💥 StudentAuthService.redirectToStudentFrontendWithData - ERROR:", error)
+      const urlConfig = getURLConfig(useLocalhost)
       console.log("🔄 StudentAuthService.redirectToStudentFrontendWithData - Redirigiendo sin datos como fallback")
-      window.location.href = STUDENT_FRONTEND_URL
+      window.location.href = urlConfig.frontEstudiante
     }
   }
 
@@ -229,6 +244,7 @@ class StudentAuthService {
     localStorage.removeItem("correo_estudiante")
     localStorage.removeItem("nombre_estudiante")
     localStorage.removeItem("student_auth_source")
+    localStorage.removeItem("student_use_localhost")
 
     console.log("✅ StudentAuthService.logoutStudent - localStorage de estudiante limpiado")
   }
