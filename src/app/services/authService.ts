@@ -1,17 +1,10 @@
-// Configuración de URLs
-const API_BASE_URL = "https://microservice-admin.onrender.com/api"
-
-// URLs de redirección según el rol
-const FRONTEND_URLS = {
-  administrador: "https://front-adminv1.vercel.app",
-  docente: "https://front-docentev1.vercel.app", // URL pendiente
-  estudiante: "https://front-estudiantev1.vercel.app", // URL pendiente
-}
+import { getURLConfig } from "../config/urls"
 
 export interface LoginCredentials {
   email: string
   password: string
   role: "administrador" | "docente" | "estudiante"
+  useLocalhost?: boolean // Nuevo parámetro opcional
 }
 
 export interface User {
@@ -43,26 +36,28 @@ export interface AuthTokens {
 }
 
 class AuthService {
-  private getApiUrl(role: string): string {
-    console.log("🔗 AuthService.getApiUrl - INPUT:", { role })
+  private getApiUrl(role: string, useLocalhost = false): string {
+    console.log("🔗 AuthService.getApiUrl - INPUT:", { role, useLocalhost })
+
+    const urlConfig = getURLConfig(useLocalhost)
+    let apiUrl: string
 
     // Por ahora solo tenemos el backend de administrador
     // En el futuro se pueden agregar otros backends
-    let apiUrl: string
     switch (role) {
       case "administrador":
-        apiUrl = `${API_BASE_URL}/auth/login`
+        apiUrl = `${urlConfig.backAdmin}/auth/login`
         break
       case "docente":
         // TODO: Implementar cuando esté disponible
-        apiUrl = `${API_BASE_URL}/auth/login`
+        apiUrl = `${urlConfig.backAdmin}/auth/login`
         break
       case "estudiante":
         // TODO: Implementar cuando esté disponible
-        apiUrl = `${API_BASE_URL}/auth/login`
+        apiUrl = `${urlConfig.backAdmin}/auth/login`
         break
       default:
-        apiUrl = `${API_BASE_URL}/auth/login`
+        apiUrl = `${urlConfig.backAdmin}/auth/login`
         break
     }
 
@@ -70,19 +65,50 @@ class AuthService {
     return apiUrl
   }
 
+  private getFrontendUrl(role: string, useLocalhost = false): string {
+    console.log("🔗 AuthService.getFrontendUrl - INPUT:", { role, useLocalhost })
+
+    const urlConfig = getURLConfig(useLocalhost)
+    let frontendUrl: string
+
+    switch (role) {
+      case "administrador":
+        frontendUrl = urlConfig.frontAdmin
+        break
+      case "docente":
+        frontendUrl = urlConfig.frontDocente
+        break
+      case "estudiante":
+        frontendUrl = urlConfig.frontEstudiante
+        break
+      default:
+        frontendUrl = urlConfig.frontAdmin
+        break
+    }
+
+    console.log("🔗 AuthService.getFrontendUrl - OUTPUT:", { frontendUrl })
+    return frontendUrl
+  }
+
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     console.log("🚀 AuthService.login - INICIANDO LOGIN")
-    console.log("📥 AuthService.login - INPUT credentials:", credentials)
+    console.log("📥 AuthService.login - INPUT credentials:", {
+      ...credentials,
+      password: "***",
+    })
 
     try {
-      const apiUrl = this.getApiUrl(credentials.role)
+      const apiUrl = this.getApiUrl(credentials.role, credentials.useLocalhost)
       console.log("🌐 AuthService.login - API URL:", apiUrl)
 
       const requestBody = {
         email: credentials.email,
         password: credentials.password,
       }
-      console.log("📤 AuthService.login - REQUEST BODY:", requestBody)
+      console.log("📤 AuthService.login - REQUEST BODY:", {
+        ...requestBody,
+        password: "***",
+      })
 
       const requestOptions = {
         method: "POST",
@@ -92,7 +118,10 @@ class AuthService {
         credentials: "include" as RequestCredentials,
         body: JSON.stringify(requestBody),
       }
-      console.log("⚙️ AuthService.login - REQUEST OPTIONS:", requestOptions)
+      console.log("⚙️ AuthService.login - REQUEST OPTIONS:", {
+        ...requestOptions,
+        body: "***",
+      })
 
       console.log("📡 AuthService.login - Enviando request al backend...")
       const response = await fetch(apiUrl, requestOptions)
@@ -115,6 +144,10 @@ class AuthService {
 
         localStorage.setItem("user_role", credentials.role)
         console.log("💾 AuthService.login - user_role guardado:", credentials.role)
+
+        // Guardar el modo de URL para usar en redirección
+        localStorage.setItem("use_localhost", credentials.useLocalhost ? "true" : "false")
+        console.log("💾 AuthService.login - use_localhost guardado:", credentials.useLocalhost)
 
         if (data.data.admin) {
           localStorage.setItem("user_data", JSON.stringify(data.data.admin))
@@ -141,7 +174,7 @@ class AuthService {
     }
   }
 
-  async refreshToken(): Promise<boolean> {
+  async refreshToken(useLocalhost = false): Promise<boolean> {
     console.log("🔄 AuthService.refreshToken - INICIANDO REFRESH")
 
     try {
@@ -156,6 +189,9 @@ class AuthService {
         return false
       }
 
+      const urlConfig = getURLConfig(useLocalhost)
+      const refreshUrl = `${urlConfig.backAdmin}/auth/refresh`
+
       const requestOptions = {
         method: "POST",
         headers: {
@@ -166,7 +202,7 @@ class AuthService {
       console.log("⚙️ AuthService.refreshToken - REQUEST OPTIONS:", requestOptions)
 
       console.log("📡 AuthService.refreshToken - Enviando request...")
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, requestOptions)
+      const response = await fetch(refreshUrl, requestOptions)
       console.log("📨 AuthService.refreshToken - RESPONSE STATUS:", response.status)
 
       const data = await response.json()
@@ -190,7 +226,7 @@ class AuthService {
     }
   }
 
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(useLocalhost = false): Promise<User | null> {
     console.log("👤 AuthService.getCurrentUser - INICIANDO")
 
     try {
@@ -205,6 +241,9 @@ class AuthService {
         return null
       }
 
+      const urlConfig = getURLConfig(useLocalhost)
+      const meUrl = `${urlConfig.backAdmin}/auth/me`
+
       const requestOptions = {
         method: "GET",
         headers: {
@@ -214,19 +253,19 @@ class AuthService {
       console.log("⚙️ AuthService.getCurrentUser - REQUEST OPTIONS:", requestOptions)
 
       console.log("📡 AuthService.getCurrentUser - Enviando request...")
-      const response = await fetch(`${API_BASE_URL}/auth/me`, requestOptions)
+      const response = await fetch(meUrl, requestOptions)
       console.log("📨 AuthService.getCurrentUser - RESPONSE STATUS:", response.status)
 
       if (response.status === 401) {
         console.log("🔄 AuthService.getCurrentUser - Token expirado, intentando renovar...")
         // Token expirado, intentar renovar
-        const refreshed = await this.refreshToken()
+        const refreshed = await this.refreshToken(useLocalhost)
         console.log("🔄 AuthService.getCurrentUser - Resultado del refresh:", refreshed)
 
         if (refreshed) {
           console.log("🔄 AuthService.getCurrentUser - Reintentando con nuevo token...")
           // Reintentar con el nuevo token
-          return this.getCurrentUser()
+          return this.getCurrentUser(useLocalhost)
         } else {
           console.log("❌ AuthService.getCurrentUser - No se pudo renovar, limpiando sesión...")
           // No se pudo renovar, limpiar sesión
@@ -253,14 +292,20 @@ class AuthService {
     try {
       const accessToken = localStorage.getItem("access_token")
       const refreshToken = localStorage.getItem("refresh_token")
+      const useLocalhost = localStorage.getItem("use_localhost") === "true"
+
       console.log("🔍 AuthService.logout - Tokens encontrados:", {
         accessToken: accessToken ? accessToken.substring(0, 50) + "..." : "null",
         refreshToken: refreshToken ? refreshToken.substring(0, 50) + "..." : "null",
+        useLocalhost,
       })
 
       if (accessToken) {
         console.log("📡 AuthService.logout - Enviando logout al backend...")
-        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        const urlConfig = getURLConfig(useLocalhost)
+        const logoutUrl = `${urlConfig.backAdmin}/auth/logout`
+
+        const response = await fetch(logoutUrl, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -283,10 +328,13 @@ class AuthService {
       localStorage.removeItem("user_role")
       localStorage.removeItem("auth_source")
       localStorage.removeItem("auth_timestamp")
+      localStorage.removeItem("use_localhost")
       sessionStorage.clear()
       console.log("✅ AuthService.logout - localStorage limpiado")
+
+      const urlConfig = getURLConfig(false) // Siempre usar producción para logout
       setTimeout(() => {
-        window.location.href = "https://front-loginv1.vercel.app/?logged_out=true"
+        window.location.href = `${urlConfig.frontLogin}?logged_out=true`
       }, 500)
     }
   }
@@ -369,11 +417,11 @@ class AuthService {
   }
 
   // FUNCIÓN ACTUALIZADA: Redirigir con tokens en query string
-  async redirectToRoleFrontendWithTokens(role: string): Promise<void> {
+  async redirectToRoleFrontendWithTokens(role: string, useLocalhost = false): Promise<void> {
     console.log("🌐 AuthService.redirectToRoleFrontendWithTokens - INICIANDO")
-    console.log("📥 AuthService.redirectToRoleFrontendWithTokens - INPUT role:", role)
+    console.log("📥 AuthService.redirectToRoleFrontendWithTokens - INPUT:", { role, useLocalhost })
 
-    const baseUrl = FRONTEND_URLS[role as keyof typeof FRONTEND_URLS]
+    const baseUrl = this.getFrontendUrl(role, useLocalhost)
     console.log("🔍 AuthService.redirectToRoleFrontendWithTokens - Base URL encontrada:", baseUrl)
 
     if (!baseUrl) {
@@ -437,7 +485,8 @@ class AuthService {
   // FUNCIÓN LEGACY: Mantener compatibilidad
   redirectToRoleFrontend(role: string): void {
     console.log("🌐 AuthService.redirectToRoleFrontend - REDIRIGIENDO A NUEVA FUNCIÓN")
-    this.redirectToRoleFrontendWithTokens(role)
+    const useLocalhost = localStorage.getItem("use_localhost") === "true"
+    this.redirectToRoleFrontendWithTokens(role, useLocalhost)
   }
 
   // Verificar si hay conflicto de sesiones (diferentes roles)
