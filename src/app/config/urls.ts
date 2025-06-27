@@ -11,7 +11,7 @@ export interface URLConfig {
 
 export const PRODUCTION_URLS: URLConfig = {
   frontAdmin: "https://front-adminv1.vercel.app",
-  frontDocente: "https://front-docentev1.vercel.app",
+  frontDocente: "https://front-teacher.vercel.app/",
   frontEstudiante: "https://front-estudiantev1.vercel.app",
   backAdmin: "https://microservice-admin.onrender.com/api",
   backEstudiante: "https://microservice-estudiante.onrender.com/api",
