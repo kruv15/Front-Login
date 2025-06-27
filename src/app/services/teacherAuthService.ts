@@ -229,24 +229,25 @@ class TeacherAuthService {
     }
   }
 
-  redirectToTeacherFrontendWithData(): void {
+  redirectToTeacherFrontendWithData(useLocalhost?: boolean): void {
     console.log("🌐 TeacherAuthService.redirectToTeacherFrontendWithData - INICIANDO")
 
     const teacherData = this.getStoredTeacherData()
-    const useLocalhost = localStorage.getItem("teacher_use_localhost") === "true"
+    const shouldUseLocalhost =
+      useLocalhost !== undefined ? useLocalhost : localStorage.getItem("teacher_use_localhost") === "true"
     console.log("🔍 TeacherAuthService.redirectToTeacherFrontendWithData - Datos del docente:", teacherData)
-    console.log("🔍 TeacherAuthService.redirectToTeacherFrontendWithData - Usar localhost:", useLocalhost)
+    console.log("🔍 TeacherAuthService.redirectToTeacherFrontendWithData - Usar localhost:", shouldUseLocalhost)
 
     if (!teacherData) {
       console.error("❌ TeacherAuthService.redirectToTeacherFrontendWithData - No hay datos del docente")
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       console.log("🔄 TeacherAuthService.redirectToTeacherFrontendWithData - Redirigiendo sin datos")
       window.location.href = urlConfig.frontDocente
       return
     }
 
     try {
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       const frontendUrl = urlConfig.frontDocente
 
       // Crear URL con datos del docente
@@ -258,7 +259,7 @@ class TeacherAuthService {
       window.location.href = authenticatedUrl
     } catch (error) {
       console.error("💥 TeacherAuthService.redirectToTeacherFrontendWithData - ERROR:", error)
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       console.log("🔄 TeacherAuthService.redirectToTeacherFrontendWithData - Redirigiendo sin datos como fallback")
       window.location.href = urlConfig.frontDocente
     }

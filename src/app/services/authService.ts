@@ -483,10 +483,11 @@ class AuthService {
   }
 
   // FUNCIÓN LEGACY: Mantener compatibilidad
-  redirectToRoleFrontend(role: string): void {
+  redirectToRoleFrontend(role: string, useLocalhost?: boolean): void {
     console.log("🌐 AuthService.redirectToRoleFrontend - REDIRIGIENDO A NUEVA FUNCIÓN")
-    const useLocalhost = localStorage.getItem("use_localhost") === "true"
-    this.redirectToRoleFrontendWithTokens(role, useLocalhost)
+    const shouldUseLocalhost =
+      useLocalhost !== undefined ? useLocalhost : localStorage.getItem("use_localhost") === "true"
+    this.redirectToRoleFrontendWithTokens(role, shouldUseLocalhost)
   }
 
   // Verificar si hay conflicto de sesiones (diferentes roles)
