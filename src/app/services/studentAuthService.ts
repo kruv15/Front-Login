@@ -200,24 +200,26 @@ class StudentAuthService {
     }
   }
 
-  redirectToStudentFrontendWithData(): void {
+  redirectToStudentFrontendWithData(useLocalhost?: boolean): void {
+    console.log("🔧 LoginModal - useLocalhost antes de redirect:", useLocalhost);
     console.log("🌐 StudentAuthService.redirectToStudentFrontendWithData - INICIANDO")
 
     const studentData = this.getStoredStudentData()
-    const useLocalhost = localStorage.getItem("student_use_localhost") === "true"
+    const shouldUseLocalhost =
+      useLocalhost !== undefined ? useLocalhost : localStorage.getItem("student_use_localhost") === "true"
     console.log("🔍 StudentAuthService.redirectToStudentFrontendWithData - Datos del estudiante:", studentData)
-    console.log("🔍 StudentAuthService.redirectToStudentFrontendWithData - Usar localhost:", useLocalhost)
+    console.log("🔍 StudentAuthService.redirectToStudentFrontendWithData - Usar localhost:", shouldUseLocalhost)
 
     if (!studentData) {
       console.error("❌ StudentAuthService.redirectToStudentFrontendWithData - No hay datos del estudiante")
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       console.log("🔄 StudentAuthService.redirectToStudentFrontendWithData - Redirigiendo sin datos")
       window.location.href = urlConfig.frontEstudiante
       return
     }
 
     try {
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       const frontendUrl = urlConfig.frontEstudiante
 
       // Crear URL con datos del estudiante
@@ -229,7 +231,7 @@ class StudentAuthService {
       window.location.href = authenticatedUrl
     } catch (error) {
       console.error("💥 StudentAuthService.redirectToStudentFrontendWithData - ERROR:", error)
-      const urlConfig = getURLConfig(useLocalhost)
+      const urlConfig = getURLConfig(shouldUseLocalhost)
       console.log("🔄 StudentAuthService.redirectToStudentFrontendWithData - Redirigiendo sin datos como fallback")
       window.location.href = urlConfig.frontEstudiante
     }

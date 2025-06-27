@@ -157,7 +157,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         console.log("⏱️ LoginModal - Esperando 500ms antes de redirigir...")
         setTimeout(() => {
           console.log("🌐 LoginModal - Redirigiendo al frontend de estudiante...")
-          studentAuthService.redirectToStudentFrontendWithData()
+          studentAuthService.redirectToStudentFrontendWithData(useLocalhost)
         }, 500)
 
         return // Salir de la función para no ejecutar el código de administrador
@@ -198,7 +198,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         console.log("⏱️ LoginModal - Esperando 500ms antes de redirigir...")
         setTimeout(() => {
           console.log("🌐 LoginModal - Redirigiendo al frontend de docente...")
-          teacherAuthService.redirectToTeacherFrontendWithData()
+          teacherAuthService.redirectToTeacherFrontendWithData(useLocalhost)
         }, 500)
 
         return // Salir de la función para no ejecutar el código de administrador
@@ -271,7 +271,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         setTimeout(() => {
           console.log("🌐 LoginModal - Redirigiendo al frontend correspondiente...")
           // Redirigir al frontend correspondiente
-          authService.redirectToRoleFrontend(role)
+          authService.redirectToRoleFrontendWithTokens(role, useLocalhost)
         }, 500)
       } else {
         console.log("❌ LoginModal - LOGIN FALLIDO")
@@ -540,8 +540,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         </div>
 
         {/* Enlaces adicionales */}
-        <div className="mt-4 text-center space-y-2">
-        </div>
+        <div className="mt-4 text-center space-y-2"></div>
       </div>
     </div>
   )
