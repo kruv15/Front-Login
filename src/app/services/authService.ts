@@ -3,7 +3,7 @@ import { getURLConfig } from "../config/urls"
 export interface LoginCredentials {
   email: string
   password: string
-  role: "administrador" | "docente" | "estudiante"
+  role: "admin" | "docente" | "estudiante"
   useLocalhost?: boolean // Nuevo parámetro opcional
 }
 
@@ -45,7 +45,7 @@ class AuthService {
     // Por ahora solo tenemos el backend de administrador
     // En el futuro se pueden agregar otros backends
     switch (role) {
-      case "administrador":
+      case "admin":
         apiUrl = `${urlConfig.backAdmin}/auth/login`
         break
       case "docente":
@@ -72,7 +72,7 @@ class AuthService {
     let frontendUrl: string
 
     switch (role) {
-      case "administrador":
+      case "admin":
         frontendUrl = urlConfig.frontAdmin
         break
       case "docente":
