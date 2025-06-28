@@ -12,7 +12,7 @@ import { teacherAuthService, type TeacherLoginCredentials } from "../services/te
 const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   console.log("🎭 LoginModal - COMPONENTE INICIANDO")
 
-  const [role, setRole] = useState<"estudiante" | "docente" | "administrador">("administrador")
+  const [role, setRole] = useState<"estudiante" | "docente" | "admin">("admin")
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -53,7 +53,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
       case "docente":
         colors = ["#002855", "#B0B0B0"]
         break
-      case "administrador":
+      case "admin":
         colors = ["#B0B0B0", "#9B1C2F"]
         break
       default:
@@ -104,7 +104,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
         setError(errorMsg)
         return false
       }
-    } else if (role === "administrador") {
+    } else if (role === "admin") {
       console.log("👨‍💼 LoginModal - Validando administrador...")
       // Para administradores, puede ser usuario o email
       if (password.length < 6) {
@@ -291,7 +291,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
   }
 
   // Handlers para cambios de estado
-  const handleRoleChange = (newRole: "estudiante" | "docente" | "administrador") => {
+  const handleRoleChange = (newRole: "estudiante" | "docente" | "admin") => {
     console.log("🎭 LoginModal - handleRoleChange:", { from: role, to: newRole })
     setRole(newRole)
   }
@@ -409,8 +409,8 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
             Docente
           </button>
           <button
-            onClick={() => handleRoleChange("administrador")}
-            className={`role-button ${role === "administrador" ? "bg-active" : ""}`}
+            onClick={() => handleRoleChange("admin")}
+            className={`role-button ${role === "admin" ? "bg-active" : ""}`}
             disabled={isLoading}
           >
             <FaShieldAlt />
@@ -478,7 +478,7 @@ const LoginModal = ({ closeModal }: { closeModal: () => void }) => {
               </div>
             </>
           )}
-          {role === "administrador" && (
+          {role === "admin" && (
             <>
               <input
                 type="text"
