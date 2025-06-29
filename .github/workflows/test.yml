@@ -1,0 +1,78 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main, dev, KevinU, Luna]
+  pull_request:
+    branches: [ main, dev, KevinU, Luna]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter
+      run: npm run lint
+
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Build project
+      run: npm run build
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Start application
+      run: npm start &
+      env:
+        PORT: 3003
+
+    - name: Wait for application to start
+      run: npx wait-on http://localhost:3003 --timeout 60000
+
+    - name: Run basic health check
+      run: |
+        curl -f http://localhost:3003 || exit 1
+        echo "✅ Application is running successfully"
